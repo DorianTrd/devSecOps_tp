@@ -32,4 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: sonar-scanner
+<<<<<<< HEAD
 
+=======
+>>>>>>> 63d875b (feat: init Sonar with github)
