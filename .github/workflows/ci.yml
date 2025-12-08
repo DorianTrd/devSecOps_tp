@@ -5,20 +5,21 @@ on:
     branches:
       - develop
       - main
-      
-jobs:
 
+jobs:
 
   lint:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
+
       - name: Install frontend dependencies
         run: npm install --prefix frontend
-      - name: Install backend dependencies
-        run: npm install --prefix backend
       - name: Lint frontend
         run: npm run lint --prefix frontend
+
+      - name: Install backend dependencies
+        run: npm install --prefix backend
       - name: Lint backend
         run: npm run lint --prefix backend
 
@@ -27,8 +28,10 @@ jobs:
     needs: lint
     steps:
       - uses: actions/checkout@v3
+
       - name: Install backend dependencies
         run: npm install --prefix backend
+
       - name: Run backend tests
         run: npm test --prefix backend
 
@@ -39,12 +42,15 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@v3
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+
       - name: Install backend dependencies
         run: npm install --prefix backend
+
       - name: Run SonarCloud scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
