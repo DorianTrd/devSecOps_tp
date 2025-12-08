@@ -185,14 +185,74 @@ git checkout -b feature/ci-pipeline
 
 Une fois terminé , le runner est actif sur github
 
-![alt text](/screenshots/image-3.png)
-
-
-![alt text](/screenshots/image-4.png)
 
 ## Partie 3 – Pipeline CI (GitHub Actions)
 
+![alt text](/screenshots/image-3.png)
 
+
+ci.yml
+
+```bash
+
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  lint:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm ci
+      - run: npm run lint:all
+
+  build:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm run build:all
+
+  test:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm test --prefix backend
+
+  sonar:
+    runs-on: self-hosted
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+      - run: sonar-scanner
+
+
+```
+
+## Partie 4 – SonarCloud : analyse qualité du backend
+
+
+Installation de SonarQube sur mon projet 
+
+![alt text](/screenshots/image-4.png)
+
+Une fois que Sonar est installé 
+
+Je crée un token sonar que je place dans les variables et secrets de github : 
+
+![alt text](/screenshots/image-9.png)
+
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=DorianTrd_devSecOps_tp&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=DorianTrd_devSecOps_tp)
+
+![alt text](/screenshots/image-6.png)
+
+![alt text](/screenshots/image-8.png)
+
+![alt text](/screenshots/image-7.png)
 
 <br><br><br><br><br>
 A complete fullstack gym management application built with modern web technologies.
