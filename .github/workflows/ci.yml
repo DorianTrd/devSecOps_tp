@@ -29,5 +29,15 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@v3
-      - name: Run Sonar Scanner
-        run: sonar-scanner
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install backend dependencies
+        run: npm install --prefix backend
+      - name: Run SonarCloud scan
+        run: |
+          npx sonar-scanner \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.sources=backend \
+            -Dsonar.host.url=https://sonarcloud.io
