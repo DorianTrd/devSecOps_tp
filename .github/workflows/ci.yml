@@ -1,0 +1,34 @@
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  lint:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm ci
+      - run: npm run lint:all
+
+  build:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm run build:all
+
+  test:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm test --prefix backend
+
+  sonar:
+    runs-on: self-hosted
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
+      - run: sonar-scanner
