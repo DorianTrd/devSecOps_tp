@@ -72,7 +72,15 @@ npx commitlint --edit "$1"
 <img width="501" height="106" alt="image" src="https://github.com/user-attachments/assets/f12f7d7d-ffa1-4b7e-8abb-36cc1320966c" />
 
 
+<<<<<<< HEAD
 Installation Linter coté front et back avec des fichiers eslint.config.js 
+=======
+
+
+
+#
+### Installation Linter coté front et back avec des fichiers eslint.config.js 
+>>>>>>> 63d875b (feat: init Sonar with github)
 
 backend :
 
@@ -149,10 +157,55 @@ Sinon les commits passent
 
 # Protection des branches
 
+<<<<<<< HEAD
 <img width="599" height="154" alt="image" src="https://github.com/user-attachments/assets/1dba7ee6-b969-4774-bd16-a61c3c7f4575" />
 
 
 
+=======
+![alt text](/screenshots/image.png)
+![alt text](/screenshots/image-1.png)
+![alt text](/screenshots/image-2.png)
+
+# TP2 – Intégration Continue (CI) : Build, Lint, Tests & SonarCloud (Vue / NestJS)
+
+> Pré-requis : TP1 terminé (Husky, Commitlint, protections de branches OK)
+
+---
+
+## Objectifs
+- Créer un pipeline CI complet pour le projet full-stack
+- Exécuter la CI sur un **runner local**
+- Automatiser : build, lint, tests
+- Ajouter une analyse qualité SonarCloud avec Quality Gate
+- Garantir PR 100% validées avant merge
+
+---
+
+## Partie 1 – Création de la branche feature CI
+
+```bash
+git checkout develop
+git pull
+git checkout -b feature/ci-pipeline 
+```
+## Partie 2 – Mise en place du runner
+
+![alt text](/screenshots/image-5.png)
+
+Une fois terminé , le runner est actif sur github
+
+![alt text](/screenshots/image-3.png)
+
+
+![alt text](/screenshots/image-4.png)
+
+## Partie 3 – Pipeline CI (GitHub Actions)
+
+
+
+<br><br><br><br><br>
+>>>>>>> 63d875b (feat: init Sonar with github)
 A complete fullstack gym management application built with modern web technologies.
 
 ## Features
