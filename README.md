@@ -246,7 +246,7 @@ jobs:
 ## Partie 4 – SonarCloud : analyse qualité du backend
 
 
-Installation de SonarQube sur mon projet 
+Installation de SonarCloud sur mon projet 
 
 ![alt text](/screenshots/image-4.png)
 
@@ -254,15 +254,20 @@ Une fois que Sonar est installé
 
 Je crée un token sonar que je place dans les variables et secrets de github : 
 
+![alt text](/screenshots/image-7.png)
+
+
+
 ![alt text](/screenshots/image-9.png)
 
+Dès lors je crée une MR sur la branche main puis sonar est connecté : 
+
+Badge venant de Sonar : 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=DorianTrd_devSecOps_tp&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=DorianTrd_devSecOps_tp)
 
 ![alt text](/screenshots/image-6.png)
 
-![alt text](/screenshots/image-8.png)
 
-![alt text](/screenshots/image-7.png)
 
 <br><br><br><br><br>
 >>>>>>> 63d875b (feat: init Sonar with github)
@@ -504,3 +509,6 @@ This project is licensed under the MIT License.
 ## Support
 
 For support or questions, please open an issue in the repository.
+
+
+
