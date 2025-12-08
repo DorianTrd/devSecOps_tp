@@ -1,5 +1,156 @@
 # Gym Management System
 
+# TP1
+
+Créer la branche develop
+
+git checkout -b develop main
+git push -u origin develop
+
+
+# Créer la branche de travail
+
+git checkout -b feature/init-husky develop
+
+Installer Husky (multi-packages)
+
+Installer Husky à la racine
+
+npm install --save-dev husky
+npm pkg set scripts.prepare="husky install"
+npm run prepare
+
+
+# Créer le hook pre-commit
+
+Ajouter dans .husky/pre-commit :
+
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+npm run lint:all
+
+
+ Ajouter les scripts dans package.json racine
+
+ ```bash
+{
+  "scripts": {
+    "prepare": "husky install",
+    "lint:front": "cd frontend && npm run lint",
+    "lint:back": "cd backend && npm run lint",
+    "lint:all": "npm run lint:front && npm run lint:back"
+  }
+}
+
+ ```
+
+<img width="552" height="146" alt="image" src="https://github.com/user-attachments/assets/8f3ecb8f-a252-4e18-b90c-27c52a8564b5" />
+
+
+# Mise en place de Commitlint
+
+Installer Commitlint
+
+npm install --save-dev @commitlint/config-conventional @commitlint/cli
+
+
+Ajouter commitlint.config.js
+
+module.exports = { extends: ["@commitlint/config-conventional"] };
+
+
+# Créer le hook commit-msg
+
+Ajouter dans .husky/commit-msg :
+
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+npx commitlint --edit "$1"
+
+<img width="501" height="106" alt="image" src="https://github.com/user-attachments/assets/f12f7d7d-ffa1-4b7e-8abb-36cc1320966c" />
+
+
+Installation Linter coté front et back avec des fichiers eslint.config.js 
+
+backend :
+
+```bash
+export default [
+  {
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: {
+        console: "readonly",
+        process: "readonly",
+        require: "readonly",
+        module: "readonly"
+      }
+    },
+    linterOptions: {
+      reportUnusedDisableDirectives: "warn"
+    },
+    rules: {
+      "no-unused-vars": "warn",
+      "no-console": "off"
+    },
+    ignores: ["node_modules/**"]
+  }
+];
+
+```
+
+frontend :
+
+```bash
+import vuePlugin from "eslint-plugin-vue";
+
+export default [
+  {
+    plugins: { vue: vuePlugin },
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "module",
+      globals: {
+        window: "readonly",
+        document: "readonly",
+        navigator: "readonly"
+      }
+    },
+    linterOptions: {
+      reportUnusedDisableDirectives: "warn"
+    },
+    rules: {
+      "no-unused-vars": "warn",
+      "no-console": "off",
+      "vue/no-unused-components": "warn",
+      "vue/html-self-closing": ["warn", {
+        "html": { "void": "never", "normal": "never", "component": "always" },
+        "svg": "always",
+        "math": "always"
+      }]
+    },
+    ignores: ["node_modules/**", "dist/**"]
+  }
+];
+
+
+```
+
+
+Cela bloque les commits non conventionnels : 
+
+<img width="516" height="170" alt="image" src="https://github.com/user-attachments/assets/cf317b79-7012-4f13-b061-5bec2c66a0c9" />
+
+Sinon les commits passent 
+
+
+
+
+
+
 A complete fullstack gym management application built with modern web technologies.
 
 ## Features
