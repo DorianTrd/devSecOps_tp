@@ -147,7 +147,9 @@ Cela bloque les commits non conventionnels :
 Sinon les commits passent 
 
 
+# Protection des branches
 
+<img width="599" height="154" alt="image" src="https://github.com/user-attachments/assets/1dba7ee6-b969-4774-bd16-a61c3c7f4575" />
 
 
 
