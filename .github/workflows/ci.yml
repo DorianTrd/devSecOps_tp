@@ -32,6 +32,7 @@ jobs:
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       - run: sonar-scanner
 <<<<<<< HEAD
 
@@ -48,3 +49,17 @@ jobs:
       - name: Run Sonar Scanner
         run: sonar-scanner
 >>>>>>> b9a6339 (fix: add dependencies)
+=======
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Install backend dependencies
+        run: npm install --prefix backend
+      - name: Run SonarCloud scan
+        run: |
+          npx sonar-scanner \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.sources=backend \
+            -Dsonar.host.url=https://sonarcloud.io
+>>>>>>> 317cee3 (fix: ci.yml)
