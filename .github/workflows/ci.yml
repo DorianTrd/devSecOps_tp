@@ -6,12 +6,15 @@ on:
       - develop
 
 jobs:
+
   lint:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
-      - run: npm install
-      - run: npm run lint:all
+      - run: npm install --prefix frontend
+      - run: npm install --prefix backend
+      - run: npm run lint --prefix frontend
+      - run: npm run lint --prefix backend
 
   test:
     runs-on: self-hosted
@@ -26,4 +29,5 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@v3
-      - run: sonar-scanner
+      - name: Run Sonar Scanner
+        run: sonar-scanner
