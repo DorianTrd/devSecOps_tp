@@ -11,12 +11,24 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
+
+      # --- FRONTEND ---
+      - name: Clean frontend node_modules
+        run: |
+          rd /s /q frontend\node_modules || echo "No frontend node_modules"
+          del frontend\package-lock.json || echo "No frontend package-lock.json"
       - name: Install frontend dependencies
-        run: npm install --prefix frontend --ignore-scripts
-      - name: Install backend dependencies
-        run: npm install --prefix backend --ignore-scripts
+        run: npm install --prefix frontend
       - name: Lint frontend
         run: npm run lint --prefix frontend
+
+      # --- BACKEND ---
+      - name: Clean backend node_modules
+        run: |
+          rd /s /q backend\node_modules || echo "No backend node_modules"
+          del backend\package-lock.json || echo "No backend package-lock.json"
+      - name: Install backend dependencies
+        run: npm install --prefix backend
       - name: Lint backend
         run: npm run lint --prefix backend
 
@@ -25,8 +37,16 @@ jobs:
     needs: lint
     steps:
       - uses: actions/checkout@v3
+
+      # Backend cleanup + install
+      - name: Clean backend node_modules
+        run: |
+          rd /s /q backend\node_modules || echo "No backend node_modules"
+          del backend\package-lock.json || echo "No backend package-lock.json"
       - name: Install backend dependencies
-        run: npm install --prefix backend --ignore-scripts
+        run: npm install --prefix backend
+
+      # Run tests
       - name: Run backend tests
         run: npm test --prefix backend
 
@@ -41,8 +61,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+
+      # Backend cleanup + install
+      - name: Clean backend node_modules
+        run: |
+          rd /s /q backend\node_modules || echo "No backend node_modules"
+          del backend\package-lock.json || echo "No backend package-lock.json"
       - name: Install backend dependencies
-        run: npm install --prefix backend --ignore-scripts
+        run: npm install --prefix backend
+
+      # Run SonarCloud scan
       - name: Run SonarCloud scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
