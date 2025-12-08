@@ -10,19 +10,15 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
-      - name: Install deps (root)
-        run: npm ci
-      - name: Lint all
-        run: npm run lint:all
+      - run: npm install
+      - run: npm run lint:all
 
   test:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
-      - name: Install backend deps
-        run: npm ci --prefix backend
-      - name: Run tests
-        run: npm test --prefix backend
+      - run: npm install --prefix backend
+      - run: npm test --prefix backend
 
   sonar:
     runs-on: self-hosted
@@ -30,5 +26,4 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@v3
-      - name: Run sonar scanner
-        run: sonar-scanner
+      - run: sonar-scanner
