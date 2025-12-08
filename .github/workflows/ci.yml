@@ -52,6 +52,11 @@ jobs:
       - name: Install backend dependencies
         run: npm install --prefix backend
 
+      - name: Setup Husky hooks 
+        run: |
+          cd backend
+          npx husky install
+
       - name: Run backend tests
         run: npm test --prefix backend
 
@@ -77,6 +82,9 @@ jobs:
 
         - name: Install backend dependencies
           run: npm install --prefix backend
+        - name: Install backend dependencies (SONAR FIX)
+          run: npm install --prefix backend --ignore-scripts
+
 
         - name: Run SonarCloud scan
           env:
