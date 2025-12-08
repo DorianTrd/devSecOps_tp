@@ -11,6 +11,7 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
+<<<<<<< HEAD
       - name: Install frontend dependencies
         run: npm install --prefix frontend
       - name: Install backend dependencies
@@ -19,25 +20,42 @@ jobs:
         run: npm run lint --prefix frontend
       - name: Lint backend
         run: npm run lint --prefix backend
+=======
+      - run: npm install --prefix frontend
+      - run: npm install --prefix backend
+      - run: npm run lint --prefix frontend
+      - run: npm run lint --prefix backend
+>>>>>>> fbb6894 (fix: add dependencies)
 
   test:
     runs-on: self-hosted
     needs: lint
     steps:
       - uses: actions/checkout@v3
+<<<<<<< HEAD
       - name: Install backend dependencies
         run: npm install --prefix backend
       - name: Run backend tests
         run: npm test --prefix backend
 <<<<<<< HEAD
+<<<<<<< HEAD
 
   sonar:
     runs-on: self-hosted
     needs: test
+=======
+=======
+      - run: npm install --prefix backend
+      - run: npm test --prefix backend
+
+  sonar:
+    runs-on: self-hosted
+>>>>>>> ff8c4b6 (fwix: add dependencies)
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@v3
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -92,3 +110,8 @@ jobs:
 >>>>>>> 023b24c (fix: value)
 =======
 >>>>>>> 6d39db3 (fix: fix)
+=======
+      - name: Run Sonar Scanner
+        run: sonar-scanner
+>>>>>>> fbb6894 (fix: add dependencies)
+>>>>>>> ff8c4b6 (fwix: add dependencies)
