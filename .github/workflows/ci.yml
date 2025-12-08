@@ -29,6 +29,7 @@ jobs:
         run: npm install --prefix backend
       - name: Run backend tests
         run: npm test --prefix backend
+<<<<<<< HEAD
 
   sonar:
     runs-on: self-hosted
@@ -89,3 +90,5 @@ jobs:
             -Dsonar.login=$SONAR_TOKEN \
             -Dsonar.host.url=https://sonarcloud.io
 >>>>>>> 023b24c (fix: value)
+=======
+>>>>>>> 6d39db3 (fix: fix)
