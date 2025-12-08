@@ -11,17 +11,23 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
-      - run: npm install --prefix frontend
-      - run: npm install --prefix backend
-      - run: npm run lint --prefix frontend
-      - run: npm run lint --prefix backend
+      - name: Install frontend dependencies
+        run: npm install --prefix frontend --ignore-scripts
+      - name: Install backend dependencies
+        run: npm install --prefix backend --ignore-scripts
+      - name: Lint frontend
+        run: npm run lint --prefix frontend
+      - name: Lint backend
+        run: npm run lint --prefix backend
 
   test:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
-      - run: npm install --prefix backend
-      - run: npm test --prefix backend
+      - name: Install backend dependencies
+        run: npm install --prefix backend --ignore-scripts
+      - name: Run backend tests
+        run: npm test --prefix backend
 
   sonar:
     runs-on: self-hosted
@@ -55,7 +61,7 @@ jobs:
         with:
           node-version: '18'
       - name: Install backend dependencies
-        run: npm install --prefix backend
+        run: npm install --prefix backend --ignore-scripts
       - name: Run SonarCloud scan
         run: |
           npx sonar-scanner \
