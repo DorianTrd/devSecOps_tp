@@ -1,10 +1,6 @@
 name: CI Pipeline
 
 on:
-  push:
-    branches:
-      - develop
-      - main
   pull_request:
     branches:
       - develop
@@ -20,8 +16,8 @@ jobs:
       - name: Clean frontend node_modules
         shell: powershell
         run: |
-          Remove-Item -Recurse -Force frontend\node_modules
-          Remove-Item -Force frontend\package-lock.json
+          Remove-Item -Recurse -Force frontend\node_modules -ErrorAction SilentlyContinue
+          Remove-Item -Force frontend\package-lock.json -ErrorAction SilentlyContinue
 
       - name: Install frontend dependencies
         run: npm install --prefix frontend
@@ -32,8 +28,8 @@ jobs:
       - name: Clean backend node_modules
         shell: powershell
         run: |
-          Remove-Item -Recurse -Force backend\node_modules
-          Remove-Item -Force backend\package-lock.json
+          Remove-Item -Recurse -Force backend\node_modules -ErrorAction SilentlyContinue
+          Remove-Item -Force backend\package-lock.json -ErrorAction SilentlyContinue
 
       - name: Install backend dependencies
         run: npm install --prefix backend
@@ -50,8 +46,8 @@ jobs:
       - name: Clean backend node_modules
         shell: powershell
         run: |
-          Remove-Item -Recurse -Force backend\node_modules
-          Remove-Item -Force backend\package-lock.json
+          Remove-Item -Recurse -Force backend\node_modules -ErrorAction SilentlyContinue
+          Remove-Item -Force backend\package-lock.json -ErrorAction SilentlyContinue
 
       - name: Install backend dependencies
         run: npm install --prefix backend
@@ -75,8 +71,8 @@ jobs:
       - name: Clean backend node_modules
         shell: powershell
         run: |
-          Remove-Item -Recurse -Force backend\node_modules
-          Remove-Item -Force backend\package-lock.json
+          Remove-Item -Recurse -Force backend\node_modules -ErrorAction SilentlyContinue
+          Remove-Item -Force backend\package-lock.json -ErrorAction SilentlyContinue
 
       - name: Install backend dependencies
         run: npm install --prefix backend
@@ -87,3 +83,4 @@ jobs:
         run: |
           cd backend
           npx sonar-scanner -Dsonar.login=$SONAR_TOKEN -Dsonar.host.url=https://sonarcloud.io
+  
