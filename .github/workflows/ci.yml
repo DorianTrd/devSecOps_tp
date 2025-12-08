@@ -52,43 +52,34 @@ jobs:
       - name: Install backend dependencies
         run: npm install --prefix backend
 
-      - name: Setup Husky hooks 
-        run: |
-          cd backend
-          npx husky install
-
       - name: Run backend tests
         run: npm test --prefix backend
 
   sonar:
-      runs-on: self-hosted
-      needs: test
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        HUSKY: 0
-      steps:
-        - uses: actions/checkout@v3
+    runs-on: self-hosted
+    needs: test
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    steps:
+      - uses: actions/checkout@v3
 
-        - name: Setup Node.js
-          uses: actions/setup-node@v4
-          with:
-            node-version: '18'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
 
-        - name: Clean backend node_modules
-          shell: powershell
-          run: |
-            Remove-Item -Recurse -Force backend\node_modules -ErrorAction SilentlyContinue
-            Remove-Item -Force backend\package-lock.json -ErrorAction SilentlyContinue
+      - name: Clean backend node_modules
+        shell: powershell
+        run: |
+          Remove-Item -Recurse -Force backend\node_modules -ErrorAction SilentlyContinue
+          Remove-Item -Force backend\package-lock.json -ErrorAction SilentlyContinue
 
-        - name: Install backend dependencies
-          run: npm install --prefix backend
-        - name: Install backend dependencies (SONAR FIX)
-          run: npm install --prefix backend --ignore-scripts
+      - name: Install backend dependencies
+        run: npm install --prefix backend
 
-
-        - name: Run SonarCloud scan
-          env:
-            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          run: |
-            cd backend
-            npx sonar-scanner -Dsonar.login=$SONAR_TOKEN -Dsonar.host.url=https://sonarcloud.io
+      - name: Run SonarCloud scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          cd backend
+          npx sonar-scanner -Dsonar.login=$SONAR_TOKEN -Dsonar.host.url=https://sonarcloud.io
