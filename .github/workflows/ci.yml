@@ -16,20 +16,28 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
+
       - name: Clean frontend node_modules
+        shell: powershell
         run: |
-          rd /s /q frontend\node_modules
-          del frontend\package-lock.json
+          Remove-Item -Recurse -Force frontend\node_modules
+          Remove-Item -Force frontend\package-lock.json
+
       - name: Install frontend dependencies
         run: npm install --prefix frontend
+
       - name: Lint frontend
         run: npm run lint --prefix frontend
+
       - name: Clean backend node_modules
+        shell: powershell
         run: |
-          rd /s /q backend\node_modules
-          del backend\package-lock.json
+          Remove-Item -Recurse -Force backend\node_modules
+          Remove-Item -Force backend\package-lock.json
+
       - name: Install backend dependencies
         run: npm install --prefix backend
+
       - name: Lint backend
         run: npm run lint --prefix backend
 
@@ -38,12 +46,16 @@ jobs:
     needs: lint
     steps:
       - uses: actions/checkout@v3
+
       - name: Clean backend node_modules
+        shell: powershell
         run: |
-          rd /s /q backend\node_modules
-          del backend\package-lock.json
+          Remove-Item -Recurse -Force backend\node_modules
+          Remove-Item -Force backend\package-lock.json
+
       - name: Install backend dependencies
         run: npm install --prefix backend
+
       - name: Run backend tests
         run: npm test --prefix backend
 
@@ -54,16 +66,21 @@ jobs:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@v3
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+
       - name: Clean backend node_modules
+        shell: powershell
         run: |
-          rd /s /q backend\node_modules
-          del backend\package-lock.json
+          Remove-Item -Recurse -Force backend\node_modules
+          Remove-Item -Force backend\package-lock.json
+
       - name: Install backend dependencies
         run: npm install --prefix backend
+
       - name: Run SonarCloud scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
