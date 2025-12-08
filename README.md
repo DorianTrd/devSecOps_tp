@@ -71,16 +71,14 @@ npx commitlint --edit "$1"
 
 <img width="501" height="106" alt="image" src="https://github.com/user-attachments/assets/f12f7d7d-ffa1-4b7e-8abb-36cc1320966c" />
 
-
-<<<<<<< HEAD
 Installation Linter coté front et back avec des fichiers eslint.config.js 
-=======
+
 
 
 
 #
 ### Installation Linter coté front et back avec des fichiers eslint.config.js 
->>>>>>> 63d875b (feat: init Sonar with github)
+>>>>>>> 6cd5a76 (feat: init Sonar with github)
 
 backend :
 
@@ -157,12 +155,10 @@ Sinon les commits passent
 
 # Protection des branches
 
-<<<<<<< HEAD
+
 <img width="599" height="154" alt="image" src="https://github.com/user-attachments/assets/1dba7ee6-b969-4774-bd16-a61c3c7f4575" />
 
 
-
-=======
 ![alt text](/screenshots/image.png)
 ![alt text](/screenshots/image-1.png)
 ![alt text](/screenshots/image-2.png)
@@ -195,82 +191,17 @@ git checkout -b feature/ci-pipeline
 
 Une fois terminé , le runner est actif sur github
 
-
-## Partie 3 – Pipeline CI (GitHub Actions)
-
 ![alt text](/screenshots/image-3.png)
 
 
-ci.yml
-
-```bash
-
-name: CI Pipeline
-
-on:
-  pull_request:
-    branches:
-      - develop
-
-jobs:
-  lint:
-    runs-on: self-hosted
-    steps:
-      - uses: actions/checkout@v3
-      - run: npm ci
-      - run: npm run lint:all
-
-  build:
-    runs-on: self-hosted
-    steps:
-      - uses: actions/checkout@v3
-      - run: npm run build:all
-
-  test:
-    runs-on: self-hosted
-    steps:
-      - uses: actions/checkout@v3
-      - run: npm test --prefix backend
-
-  sonar:
-    runs-on: self-hosted
-    env:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-    steps:
-      - uses: actions/checkout@v3
-      - run: sonar-scanner
-
-
-```
-
-## Partie 4 – SonarCloud : analyse qualité du backend
-
-
-Installation de SonarCloud sur mon projet 
-
 ![alt text](/screenshots/image-4.png)
 
-Une fois que Sonar est installé 
-
-Je crée un token sonar que je place dans les variables et secrets de github : 
-
-![alt text](/screenshots/image-7.png)
-
-
-
-![alt text](/screenshots/image-9.png)
-
-Dès lors je crée une MR sur la branche main puis sonar est connecté : 
-
-Badge venant de Sonar : 
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=DorianTrd_devSecOps_tp&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=DorianTrd_devSecOps_tp)
-
-![alt text](/screenshots/image-6.png)
+## Partie 3 – Pipeline CI (GitHub Actions)
 
 
 
 <br><br><br><br><br>
->>>>>>> 63d875b (feat: init Sonar with github)
+>>>>>>> 6cd5a76 (feat: init Sonar with github)
 A complete fullstack gym management application built with modern web technologies.
 
 ## Features
@@ -509,6 +440,3 @@ This project is licensed under the MIT License.
 ## Support
 
 For support or questions, please open an issue in the repository.
-
-
-

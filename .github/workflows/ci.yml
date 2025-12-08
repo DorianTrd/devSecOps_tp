@@ -4,14 +4,14 @@ on:
   pull_request:
     branches:
       - develop
-
+      
 jobs:
+
 
   lint:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
-<<<<<<< HEAD
       - name: Install frontend dependencies
         run: npm install --prefix frontend
       - name: Install backend dependencies
@@ -20,67 +20,24 @@ jobs:
         run: npm run lint --prefix frontend
       - name: Lint backend
         run: npm run lint --prefix backend
-=======
-      - run: npm install --prefix frontend
-      - run: npm install --prefix backend
-      - run: npm run lint --prefix frontend
-      - run: npm run lint --prefix backend
->>>>>>> fbb6894 (fix: add dependencies)
 
   test:
     runs-on: self-hosted
     needs: lint
     steps:
       - uses: actions/checkout@v3
-<<<<<<< HEAD
       - name: Install backend dependencies
         run: npm install --prefix backend
       - name: Run backend tests
         run: npm test --prefix backend
-<<<<<<< HEAD
-<<<<<<< HEAD
 
   sonar:
     runs-on: self-hosted
     needs: test
-=======
-=======
-      - run: npm install --prefix backend
-      - run: npm test --prefix backend
-
-  sonar:
-    runs-on: self-hosted
->>>>>>> ff8c4b6 (fwix: add dependencies)
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@v3
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-      - run: sonar-scanner
-<<<<<<< HEAD
-
-=======
->>>>>>> 63d875b (feat: init Sonar with github)
-=======
-      - name: Run sonar scanner
-        run: sonar-scanner
->>>>>>> fd2088a (fix: ci.yml)
-=======
-      - run: sonar-scanner
->>>>>>> 1d00da0 (fix: change ci.yml)
-=======
-      - name: Run Sonar Scanner
-        run: sonar-scanner
->>>>>>> b9a6339 (fix: add dependencies)
-=======
-=======
->>>>>>> 023b24c (fix: value)
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -88,18 +45,6 @@ jobs:
       - name: Install backend dependencies
         run: npm install --prefix backend
       - name: Run SonarCloud scan
-<<<<<<< HEAD
-        run: |
-          npx sonar-scanner \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-            -Dsonar.sources=backend \
-            -Dsonar.host.url=https://sonarcloud.io
->>>>>>> 317cee3 (fix: ci.yml)
-=======
-      - name: Run Sonar Scanner
-        run: sonar-scanner
->>>>>>> 9b59136 (fix: cy.yml value)
-=======
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
@@ -107,11 +52,3 @@ jobs:
           npx sonar-scanner \
             -Dsonar.login=$SONAR_TOKEN \
             -Dsonar.host.url=https://sonarcloud.io
->>>>>>> 023b24c (fix: value)
-=======
->>>>>>> 6d39db3 (fix: fix)
-=======
-      - name: Run Sonar Scanner
-        run: sonar-scanner
->>>>>>> fbb6894 (fix: add dependencies)
->>>>>>> ff8c4b6 (fwix: add dependencies)
