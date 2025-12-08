@@ -1,0 +1,31 @@
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+
+  lint:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install frontend dependencies
+        run: npm install --prefix frontend
+      - name: Install backend dependencies
+        run: npm install --prefix backend
+      - name: Lint frontend
+        run: npm run lint --prefix frontend
+      - name: Lint backend
+        run: npm run lint --prefix backend
+
+  test:
+    runs-on: self-hosted
+    needs: lint
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install backend dependencies
+        run: npm install --prefix backend
+      - name: Run backend tests
+        run: npm test --prefix backend
