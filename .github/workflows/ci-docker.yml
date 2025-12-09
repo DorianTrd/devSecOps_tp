@@ -92,3 +92,21 @@ jobs:
           docker tag frontend-ci $env:DOCKERHUB_USERNAME/cloudnative-frontend:latest
           docker push $env:DOCKERHUB_USERNAME/cloudnative-frontend:${{ github.sha }}
           docker push $env:DOCKERHUB_USERNAME/cloudnative-frontend:latest
+
+  deploy:
+      name: Deploy
+      runs-on: self-hosted
+      needs: build-and-push
+      if: github.ref == 'refs/heads/main' 
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+
+        - name: Deploy via script
+          shell: bash
+          run: |
+            chmod +x ./scripts/deploy.sh
+            ./scripts/deploy.sh
+          env:
+            GITHUB_SHA: ${{ github.sha }}
+            DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
