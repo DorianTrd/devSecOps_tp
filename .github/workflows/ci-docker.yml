@@ -14,7 +14,7 @@ jobs:
 
       # Login Docker registry
       - name: Docker login
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u <DorianTrd> --password-stdin
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u DorianTrd --password-stdin
 
       # Build backend
       - name: Build backend Docker image
@@ -27,14 +27,14 @@ jobs:
       # Tag & push backend
       - name: Tag & push backend
         run: |
-          docker tag backend-ci ghcr.io/<DorianTrd>/cloudnative-backend:${{ github.sha }}
-          docker push ghcr.io/<DorianTrd>/cloudnative-backend:${{ github.sha }}
+          docker tag backend-ci ghcr.io/DorianTrd/cloudnative-backend:${{ github.sha }}
+          docker push ghcr.io/DorianTrd/cloudnative-backend:${{ github.sha }}
 
       # Tag & push frontend
       - name: Tag & push frontend
         run: |
-          docker tag frontend-ci ghcr.io/<DorianTrd>/cloudnative-frontend:${{ github.sha }}
-          docker push ghcr.io/<DorianTrd>/cloudnative-frontend:${{ github.sha }}
+          docker tag frontend-ci ghcr.io/DorianTrd/cloudnative-frontend:${{ github.sha }}
+          docker push ghcr.io/DorianTrd/cloudnative-frontend:${{ github.sha }}
 
       # Stop existing containers if any
       - name: Stop any existing containers
