@@ -23,7 +23,7 @@ jobs:
       - name: Simple Backend Healthcheck
         run: |
           docker run -d -p 3000:3000 --name backend-test backend-ci
-          # Attendre un peu (ex: 5s) que l'app démarre
+          # Attendre un peu que l'app démarre
           sleep 5 
           # Tester si l'API répond (nécessite curl)
           docker exec backend-test sh -c "apk add curl; curl -s -f http://localhost:3000 || exit 1"
