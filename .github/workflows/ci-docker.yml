@@ -102,7 +102,7 @@ jobs:
 
       - name: Deploy via script
         shell: powershell
-        run: ./scripts/deploy.sh
+        run: ./scripts/deploy.ps1
         env:
           GITHUB_SHA: ${{ github.sha }}
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
