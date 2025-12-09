@@ -1,0 +1,12 @@
+services:
+  app-back-green:
+    image: "${DOCKERHUB_USERNAME}/cloudnative-backend-green:${GITHUB_SHA}"
+    environment:
+      DATABASE_URL: "postgresql://myuser:mypassword@db:5432/mydatabase"
+    depends_on:
+      - db
+
+  app-front-green:
+    image: "${DOCKERHUB_USERNAME}/cloudnative-frontend-green:${GITHUB_SHA}"
+    depends_on:
+      - app-back-green
