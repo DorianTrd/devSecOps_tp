@@ -7,66 +7,49 @@ on:
       - main
 
 jobs:
-  docker:
+  docker-build-and-push:
     runs-on: self-hosted
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 1. Construire les images Docker (multi-stage 'production')
+      # 1. Construire les images Docker
       - name: Build Backend Image
-        run: docker build -t backend-ci ./backend --target production
-
+        run: docker build -t backend-ci ./backend
+        
       - name: Build Frontend Image
-        run: docker build -t frontend-ci ./frontend --target production
+        run: docker build -t frontend-ci ./frontend
 
-      # 2. Vérifier que les images tournent (healthcheck simple)
+      # 2. Healthcheck simple
       - name: Simple Backend Healthcheck
-        shell: bash
         run: |
           docker run -d -p 3000:3000 --name backend-test backend-ci
           sleep 5
           docker exec backend-test sh -c "apk add curl; curl -s -f http://localhost:3000 || exit 1"
           docker rm -f backend-test
-
+          
       - name: Simple Frontend Healthcheck
-        shell: bash
         run: |
           docker run -d -p 8080:80 --name frontend-test frontend-ci
           sleep 5
           docker exec frontend-test sh -c "apk add curl; curl -s -f http://localhost:80 || exit 1"
           docker rm -f frontend-test
 
-      # 3. Taguer et pousser dans GHCR
+      # 3. Login GHCR
       - name: Log in to GitHub Container Registry (GHCR)
         run: echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u DorianTrd --password-stdin
 
-      # 4. Définition des tags
-      - name: Define Image Tags
-        id: image_tags
-        run: |
-          BACKEND_IMAGE_SHA=ghcr.io/${{ github.repository_owner }}/cloudnative-backend:${{ github.sha }}
-          FRONTEND_IMAGE_SHA=ghcr.io/${{ github.repository_owner }}/cloudnative-frontend:${{ github.sha }}
-          BACKEND_IMAGE_LATEST=ghcr.io/${{ github.repository_owner }}/cloudnative-backend:latest
-          FRONTEND_IMAGE_LATEST=ghcr.io/${{ github.repository_owner }}/cloudnative-frontend:latest
-
-          echo "backend_sha=$BACKEND_IMAGE_SHA" >> $GITHUB_OUTPUT
-          echo "frontend_sha=$FRONTEND_IMAGE_SHA" >> $GITHUB_OUTPUT
-          echo "backend_latest=$BACKEND_IMAGE_LATEST" >> $GITHUB_OUTPUT
-          echo "frontend_latest=$FRONTEND_IMAGE_LATEST" >> $GITHUB_OUTPUT
-
-      # 5. Tag et Push Backend
+      # 4. Tag et Push
       - name: Tag and Push Backend Image
         run: |
-          docker tag backend-ci ${{ steps.image_tags.outputs.backend_sha }}
-          docker tag backend-ci ${{ steps.image_tags.outputs.backend_latest }}
-          docker push ${{ steps.image_tags.outputs.backend_sha }}
-          docker push ${{ steps.image_tags.outputs.backend_latest }}
-
-      # 6. Tag et Push Frontend
+          docker tag backend-ci ghcr.io/DorianTrd/cloudnative-backend:${{ github.sha }}
+          docker tag backend-ci ghcr.io/DorianTrd/cloudnative-backend:latest
+          docker push ghcr.io/DorianTrd/cloudnative-backend:${{ github.sha }}
+          docker push ghcr.io/DorianTrd/cloudnative-backend:latest
+          
       - name: Tag and Push Frontend Image
         run: |
-          docker tag frontend-ci ${{ steps.image_tags.outputs.frontend_sha }}
-          docker tag frontend-ci ${{ steps.image_tags.outputs.frontend_latest }}
-          docker push ${{ steps.image_tags.outputs.frontend_sha }}
-          docker push ${{ steps.image_tags.outputs.frontend_latest }}
+          docker tag frontend-ci ghcr.io/DorianTrd/cloudnative-frontend:${{ github.sha }}
+          docker tag frontend-ci ghcr.io/DorianTrd/cloudnative-frontend:latest
+          docker push ghcr.io/DorianTrd/cloudnative-frontend:${{ github.sha }}
+          docker push ghcr.io/DorianTrd/cloudnative-frontend:latest
