@@ -17,11 +17,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2️⃣ Login Docker Hub (PowerShell friendly)
+      # 2️⃣ Docker Hub Login
       - name: Docker Hub Login
         shell: powershell
-        run: |
-          docker login -u $env:DOCKERHUB_USERNAME -p $env:DOCKERHUB_TOKEN
+        run: docker login -u $env:DOCKERHUB_USERNAME -p $env:DOCKERHUB_TOKEN
 
       # 3️⃣ Build Backend
       - name: Build backend image
@@ -44,12 +43,12 @@ jobs:
           # Lancer le container
           docker run -d -p 3000:3000 --name backend-test backend-ci
 
-          # Attendre que le backend démarre
+          # Attendre le démarrage
           Start-Sleep -Seconds 10
 
-          # Healthcheck sur la route réelle du backend
+          # Healthcheck sur /health (à créer dans NestJS)
           try {
-              Invoke-WebRequest -Uri http://localhost:3000/api -UseBasicParsing -TimeoutSec 5
+              Invoke-WebRequest -Uri http://localhost:3000/health -UseBasicParsing -TimeoutSec 5
           } catch {
               Write-Error "Backend healthcheck failed"
               exit 1
@@ -58,15 +57,23 @@ jobs:
           # Supprimer le container après test
           docker rm -f backend-test
 
-
       # 6️⃣ Healthcheck Frontend
       - name: Run frontend container and test
         shell: powershell
         run: |
-          docker rm -f frontend-test -ErrorAction SilentlyContinue
+          $existing = docker ps -a -q -f name=frontend-test
+          if ($existing) { docker rm -f frontend-test }
+
           docker run -d -p 8080:80 --name frontend-test frontend-ci
           Start-Sleep -Seconds 10
-          Invoke-WebRequest -Uri http://localhost:8080 -UseBasicParsing
+
+          try {
+              Invoke-WebRequest -Uri http://localhost:8080/ -UseBasicParsing -TimeoutSec 5
+          } catch {
+              Write-Error "Frontend healthcheck failed"
+              exit 1
+          }
+
           docker rm -f frontend-test
 
       # 7️⃣ Tag + Push Backend
