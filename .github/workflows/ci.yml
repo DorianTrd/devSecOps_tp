@@ -57,7 +57,7 @@ jobs:
 
   sonarcloud:
     runs-on: self-hosted
-    needs: tests
+    needs: test
 
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
