@@ -78,7 +78,6 @@ Installation Linter coté front et back avec des fichiers eslint.config.js
 
 #
 ### Installation Linter coté front et back avec des fichiers eslint.config.js 
->>>>>>> 6cd5a76 (feat: init Sonar with github)
 
 backend :
 
@@ -198,10 +197,28 @@ Une fois terminé , le runner est actif sur github
 
 ## Partie 3 – Pipeline CI (GitHub Actions)
 
+ badge SonarCloud
 
+ [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=DorianTrd_devSecOps_tp&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=DorianTrd_devSecOps_tp)
+ 
+ tableau de bord Sonar
+ ![alt text](/screenshots/image-6.png)
+
+
+ Quality Gate
+  ![alt text](/screenshots/image-7.png)
+
+ PR bloquée
+ ![alt text](/screenshots/image-10.png)
+
+
+PR Passe pour les pipelines mais mais pas Quality Gate ( version payante obligatoire)
+![alt text](/screenshots/image-11.png)
+
+Runner Local : 
+![alt text](/screenshots/image-12.png)
 
 <br><br><br><br><br>
->>>>>>> 6cd5a76 (feat: init Sonar with github)
 A complete fullstack gym management application built with modern web technologies.
 
 ## Features
