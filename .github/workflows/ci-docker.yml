@@ -15,44 +15,44 @@ jobs:
 
       # 2️⃣ Docker login GHCR
       - name: Docker login
-        shell: pwsh
+        shell: powershell
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u DorianTrd --password-stdin
 
       # 3️⃣ Build backend
       - name: Build backend Docker image
-        shell: pwsh
+        shell: powershell
         run: docker build -t backend-ci ./backend
 
       # 4️⃣ Build frontend
       - name: Build frontend Docker image
-        shell: pwsh
+        shell: powershell
         run: docker build -t frontend-ci ./frontend
 
       # 5️⃣ Tag & push backend
       - name: Tag & push backend
-        shell: pwsh
+        shell: powershell
         run: |
           docker tag backend-ci ghcr.io/DorianTrd/cloudnative-backend:${{ github.sha }}
           docker push ghcr.io/DorianTrd/cloudnative-backend:${{ github.sha }}
 
       # 6️⃣ Tag & push frontend
       - name: Tag & push frontend
-        shell: pwsh
+        shell: powershell
         run: |
           docker tag frontend-ci ghcr.io/DorianTrd/cloudnative-frontend:${{ github.sha }}
           docker push ghcr.io/DorianTrd/cloudnative-frontend:${{ github.sha }}
 
       # 7️⃣ Stop old containers
       - name: Stop existing containers
-        shell: pwsh
+        shell: powershell
         run: |
           docker rm -f backend-test -ErrorAction SilentlyContinue
           docker rm -f frontend-test -ErrorAction SilentlyContinue
 
       # 8️⃣ Run containers for healthcheck
       - name: Run containers
-        shell: pwsh
+        shell: powershell
         run: |
           docker run -d --name backend-test -p 3000:3000 backend-ci
           docker run -d --name frontend-test -p 8080:80 frontend-ci
@@ -60,7 +60,7 @@ jobs:
 
       # 9️⃣ Check backend health
       - name: Check backend health
-        shell: pwsh
+        shell: powershell
         run: |
           try {
               Invoke-WebRequest -UseBasicParsing -Uri http://localhost:3000 -TimeoutSec 10
@@ -71,7 +71,7 @@ jobs:
 
       # 🔟 Check frontend health
       - name: Check frontend health
-        shell: pwsh
+        shell: powershell
         run: |
           try {
               Invoke-WebRequest -UseBasicParsing -Uri http://localhost:8080 -TimeoutSec 10
