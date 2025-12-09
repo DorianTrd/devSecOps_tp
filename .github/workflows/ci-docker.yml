@@ -10,48 +10,72 @@ jobs:
   build-and-push-docker:
     runs-on: self-hosted
     steps:
+      # 1️⃣ Checkout repository
       - uses: actions/checkout@v3
 
-      # Login Docker registry
+      # 2️⃣ Docker login GHCR
       - name: Docker login
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u DorianTrd --password-stdin
+        shell: pwsh
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u DorianTrd --password-stdin
 
-      # Build backend
+      # 3️⃣ Build backend
       - name: Build backend Docker image
+        shell: pwsh
         run: docker build -t backend-ci ./backend
 
-      # Build frontend
+      # 4️⃣ Build frontend
       - name: Build frontend Docker image
+        shell: pwsh
         run: docker build -t frontend-ci ./frontend
 
-      # Tag & push backend
+      # 5️⃣ Tag & push backend
       - name: Tag & push backend
+        shell: pwsh
         run: |
           docker tag backend-ci ghcr.io/DorianTrd/cloudnative-backend:${{ github.sha }}
           docker push ghcr.io/DorianTrd/cloudnative-backend:${{ github.sha }}
 
-      # Tag & push frontend
+      # 6️⃣ Tag & push frontend
       - name: Tag & push frontend
+        shell: pwsh
         run: |
           docker tag frontend-ci ghcr.io/DorianTrd/cloudnative-frontend:${{ github.sha }}
           docker push ghcr.io/DorianTrd/cloudnative-frontend:${{ github.sha }}
 
-      # Stop existing containers if any
-      - name: Stop any existing containers
+      # 7️⃣ Stop old containers
+      - name: Stop existing containers
+        shell: pwsh
         run: |
-          docker rm -f backend-test || true
-          docker rm -f frontend-test || true
+          docker rm -f backend-test -ErrorAction SilentlyContinue
+          docker rm -f frontend-test -ErrorAction SilentlyContinue
 
-      # Run containers for healthcheck
-      - name: Run containers for healthcheck
+      # 8️⃣ Run containers for healthcheck
+      - name: Run containers
+        shell: pwsh
         run: |
           docker run -d --name backend-test -p 3000:3000 backend-ci
           docker run -d --name frontend-test -p 8080:80 frontend-ci
           docker ps
 
-
+      # 9️⃣ Check backend health
       - name: Check backend health
-        run: curl -f http://localhost:3000 || exit 1
+        shell: pwsh
+        run: |
+          try {
+              Invoke-WebRequest -UseBasicParsing -Uri http://localhost:3000 -TimeoutSec 10
+          } catch {
+              Write-Error "Backend healthcheck failed"
+              exit 1
+          }
 
+      # 🔟 Check frontend health
       - name: Check frontend health
-        run: curl -f http://localhost:8080 || exit 1
+        shell: pwsh
+        run: |
+          try {
+              Invoke-WebRequest -UseBasicParsing -Uri http://localhost:8080 -TimeoutSec 10
+          } catch {
+              Write-Error "Frontend healthcheck failed"
+              exit 1
+          }
