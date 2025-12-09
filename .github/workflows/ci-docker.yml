@@ -1,9 +1,12 @@
 name: CI/CD Pipeline
 
-# ... autres configurations (on: push, on: pull_request, etc.)
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
 
 jobs:
-  # ... autres jobs (lint, test, sonarcloud)
 
   docker-build-and-push:
     # Exécution sur le runner local
