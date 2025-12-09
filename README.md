@@ -1,6 +1,6 @@
 # Gym Management System
 
-# TP1
+# TP1 – Mise en place d’un workflow Git professionnel + Husky (Vue / Nest / Postgres)
 
 Créer la branche develop
 
@@ -76,7 +76,7 @@ Installation Linter coté front et back avec des fichiers eslint.config.js
 
 
 
-#
+
 ### Installation Linter coté front et back avec des fichiers eslint.config.js 
 
 backend :
@@ -144,6 +144,93 @@ export default [
 
 ```
 
+ci.yml
+
+```bash
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+
+jobs:
+
+  lint:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Clean frontend node_modules
+        shell: powershell
+        run: |
+          Remove-Item -Recurse -Force frontend\node_modules -ErrorAction SilentlyContinue
+          Remove-Item -Force frontend\package-lock.json -ErrorAction SilentlyContinue
+
+      - name: Install frontend dependencies
+        run: npm install --prefix frontend
+
+      - name: Lint frontend
+        run: npm run lint --prefix frontend
+
+      - name: Clean backend node_modules
+        shell: powershell
+        run: |
+          Remove-Item -Recurse -Force backend\node_modules -ErrorAction SilentlyContinue
+          Remove-Item -Force backend\package-lock.json -ErrorAction SilentlyContinue
+
+      - name: Install backend dependencies
+        run: npm install --prefix backend
+
+      - name: Lint backend
+        run: npm run lint --prefix backend
+
+  test:
+    runs-on: self-hosted
+    needs: lint
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Clean backend node_modules
+        shell: powershell
+        run: |
+          Remove-Item -Recurse -Force backend\node_modules -ErrorAction SilentlyContinue
+          Remove-Item -Force backend\package-lock.json -ErrorAction SilentlyContinue
+
+      - name: Install backend dependencies
+        run: npm install --prefix backend
+
+      - name: Run backend tests
+        run: npm test --prefix backend
+
+  sonarcloud:
+    runs-on: self-hosted
+    needs: test
+
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm install
+
+      - name: Run SonarScanner (backend)
+        working-directory: backend
+        run: |
+          & "C:\sonar\sonar-scanner-5.0.1.3006-windows\bin\sonar-scanner.bat" `
+          -D"sonar.login=$env:SONAR_TOKEN"
+```
+
 
 Cela bloque les commits non conventionnels : 
 
@@ -202,22 +289,55 @@ Une fois terminé , le runner est actif sur github
  [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=DorianTrd_devSecOps_tp&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=DorianTrd_devSecOps_tp)
  
  tableau de bord Sonar
+
  ![alt text](/screenshots/image-6.png)
 
 
  Quality Gate
+
   ![alt text](/screenshots/image-7.png)
 
  PR bloquée
+
  ![alt text](/screenshots/image-10.png)
 
 
 PR Passe pour les pipelines mais mais pas Quality Gate ( version payante obligatoire)
+
 ![alt text](/screenshots/image-11.png)
 
 Runner Local : 
+
 ![alt text](/screenshots/image-12.png)
 
+
+# TP3 – Dockerisation et orchestration de l’application Vue + NestJS + Postgres
+
+## Partie 1
+
+Test local pour le back
+
+![alt text](/screenshots/image-13.png)
+
+![alt text](/screenshots/image-17.png)
+
+Test local pour le front
+
+![alt text](/screenshots/image-14.png)
+
+![alt text](/screenshots/image-15.png)
+
+Lancement du localhost : 
+
+![alt text](/screenshots/image-16.png)
+
+## Partie 2
+
+
+![alt text](image.png)
+
+
+![alt text](image-1.png)
 <br><br><br><br><br>
 A complete fullstack gym management application built with modern web technologies.
 

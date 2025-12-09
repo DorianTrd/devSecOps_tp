@@ -1,82 +1,82 @@
-name: CI Pipeline
+  name: CI Pipeline
 
-on:
-  pull_request:
-    branches:
-      - develop
-      - main
+  on:
+    pull_request:
+      branches:
+        - develop
+        - main
 
-jobs:
+  jobs:
 
-  lint:
-    runs-on: self-hosted
-    steps:
-      - uses: actions/checkout@v3
+    lint:
+      runs-on: self-hosted
+      steps:
+        - uses: actions/checkout@v3
 
-      - name: Clean frontend node_modules
-        shell: powershell
-        run: |
-          Remove-Item -Recurse -Force frontend\node_modules -ErrorAction SilentlyContinue
-          Remove-Item -Force frontend\package-lock.json -ErrorAction SilentlyContinue
+        - name: Clean frontend node_modules
+          shell: powershell
+          run: |
+            Remove-Item -Recurse -Force frontend\node_modules -ErrorAction SilentlyContinue
+            Remove-Item -Force frontend\package-lock.json -ErrorAction SilentlyContinue
 
-      - name: Install frontend dependencies
-        run: npm install --prefix frontend
+        - name: Install frontend dependencies
+          run: npm install --prefix frontend
 
-      - name: Lint frontend
-        run: npm run lint --prefix frontend
+        - name: Lint frontend
+          run: npm run lint --prefix frontend
 
-      - name: Clean backend node_modules
-        shell: powershell
-        run: |
-          Remove-Item -Recurse -Force backend\node_modules -ErrorAction SilentlyContinue
-          Remove-Item -Force backend\package-lock.json -ErrorAction SilentlyContinue
+        - name: Clean backend node_modules
+          shell: powershell
+          run: |
+            Remove-Item -Recurse -Force backend\node_modules -ErrorAction SilentlyContinue
+            Remove-Item -Force backend\package-lock.json -ErrorAction SilentlyContinue
 
-      - name: Install backend dependencies
-        run: npm install --prefix backend
+        - name: Install backend dependencies
+          run: npm install --prefix backend
 
-      - name: Lint backend
-        run: npm run lint --prefix backend
+        - name: Lint backend
+          run: npm run lint --prefix backend
 
-  test:
-    runs-on: self-hosted
-    needs: lint
-    steps:
-      - uses: actions/checkout@v3
+    test:
+      runs-on: self-hosted
+      needs: lint
+      steps:
+        - uses: actions/checkout@v3
 
-      - name: Clean backend node_modules
-        shell: powershell
-        run: |
-          Remove-Item -Recurse -Force backend\node_modules -ErrorAction SilentlyContinue
-          Remove-Item -Force backend\package-lock.json -ErrorAction SilentlyContinue
+        - name: Clean backend node_modules
+          shell: powershell
+          run: |
+            Remove-Item -Recurse -Force backend\node_modules -ErrorAction SilentlyContinue
+            Remove-Item -Force backend\package-lock.json -ErrorAction SilentlyContinue
 
-      - name: Install backend dependencies
-        run: npm install --prefix backend
+        - name: Install backend dependencies
+          run: npm install --prefix backend
 
-      - name: Run backend tests
-        run: npm test --prefix backend
+        - name: Run backend tests
+          run: npm test --prefix backend
 
-  sonarcloud:
-    runs-on: self-hosted
-    needs: test
+    sonarcloud:
+      runs-on: self-hosted
+      needs: test
 
-    env:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
+        - name: Setup Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: "20"
 
-      - name: Install backend dependencies
-        working-directory: backend
-        run: npm install
+        - name: Install backend dependencies
+          working-directory: backend
+          run: npm install
 
-      - name: Run SonarScanner (backend)
-        working-directory: backend
-        run: |
-          & "C:\sonar\sonar-scanner-5.0.1.3006-windows\bin\sonar-scanner.bat" `
-          -D"sonar.login=$env:SONAR_TOKEN"
+        - name: Run SonarScanner (backend)
+          working-directory: backend
+          run: |
+            & "C:\sonar\sonar-scanner-5.0.1.3006-windows\bin\sonar-scanner.bat" `
+            -D"sonar.login=$env:SONAR_TOKEN"

@@ -13,6 +13,7 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/src ./src
+COPY --from=builder /app/seed ./seed  
 ENV NODE_ENV=production
 EXPOSE 3000
 CMD ["node", "src/index.js"]
