@@ -1,80 +1,77 @@
-name: CI Pipeline Docker
+name: CI/CD Pipeline
 
-on:
-  pull_request:
-    branches:
-      - develop
-      - main
+# ... autres configurations (on: push, on: pull_request, etc.)
 
 jobs:
-  build-and-push-docker:
+  # ... autres jobs (lint, test, sonarcloud)
+
+  docker-build-and-push:
+    # Exécution sur le runner local
     runs-on: self-hosted
+    # Nécessite que le build/test ait réussi
+    needs: [build-and-test, sonarcloud]
     steps:
-      # 1️⃣ Checkout repository
-      - uses: actions/checkout@v3
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      # 2️⃣ Docker login GHCR
-      - name: Docker login
-        shell: powershell
-        run: echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u DorianTrd --password-stdin
+      # 1. Construire les images Docker (utiliser le multi-stage 'production' pour l'optimisation)
+      - name: Build Backend Image
+        run: docker build -t backend-ci ./backend --target production
+      
+      - name: Build Frontend Image
+        run: docker build -t frontend-ci ./frontend --target production
 
-      # 3️⃣ Build backend
-      - name: Build backend Docker image
-        shell: powershell
-        run: docker build -t backend-ci ./backend
-
-      # 4️⃣ Build frontend
-      - name: Build frontend Docker image
-        shell: powershell
-        run: docker build -t frontend-ci ./frontend
-
-      # 5️⃣ Tag & push backend
-      - name: Tag & push backend
-        shell: powershell
+      # 2. Vérifier que les images tournent (healthcheck simple)
+      - name: Simple Backend Healthcheck
         run: |
-          docker tag backend-ci ghcr.io/DorianTrd/cloudnative-backend:${{ github.sha }}
-          docker push ghcr.io/DorianTrd/cloudnative-backend:${{ github.sha }}
-
-      # 6️⃣ Tag & push frontend
-      - name: Tag & push frontend
-        shell: powershell
+          docker run -d -p 3000:3000 --name backend-test backend-ci
+          # Attendre un peu (ex: 5s) que l'app démarre
+          sleep 5 
+          # Tester si l'API répond (nécessite curl)
+          docker exec backend-test sh -c "apk add curl; curl -s -f http://localhost:3000 || exit 1"
+          docker rm -f backend-test
+        # Utiliser un service de test plus adapté si nécessaire
+        
+      - name: Simple Frontend Healthcheck
         run: |
-          docker tag frontend-ci ghcr.io/DorianTrd/cloudnative-frontend:${{ github.sha }}
-          docker push ghcr.io/DorianTrd/cloudnative-frontend:${{ github.sha }}
+          docker run -d -p 8080:80 --name frontend-test frontend-ci
+          sleep 5 
+          docker exec frontend-test sh -c "apk add curl; curl -s -f http://localhost:80 || exit 1"
+          docker rm -f frontend-test
 
-      # 7️⃣ Stop old containers
-      - name: Stop existing containers
-        shell: powershell
+      # 3. Taguer et pousser dans le registre distant (GHCR)
+      - name: Log in to GitHub Container Registry (GHCR)
+        # Utilisation de GITHUB_TOKEN généré par GitHub Actions pour l'authentification
+        run: echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u ${{ DorianTrd }} --password-stdin
+        # Remplacez ${{ github.actor }} par votre nom d'utilisateur si GITHUB_TOKEN n'a pas les droits nécessaires
+        # Si vous utilisez DOCKER_USERNAME/DOCKER_PASSWORD pour Docker Hub, utilisez-les ici.
+      
+      # Définition des tags
+      - name: Define Image Tags
+        id: image_tags
         run: |
-          docker rm -f backend-test -ErrorAction SilentlyContinue
-          docker rm -f frontend-test -ErrorAction SilentlyContinue
+          BACKEND_IMAGE_SHA=ghcr.io/${{ github.repository_owner }}/cloudnative-backend:${{ github.sha }}
+          FRONTEND_IMAGE_SHA=ghcr.io/${{ github.repository_owner }}/cloudnative-frontend:${{ github.sha }}
+          BACKEND_IMAGE_LATEST=ghcr.io/${{ github.repository_owner }}/cloudnative-backend:latest
+          FRONTEND_IMAGE_LATEST=ghcr.io/${{ github.repository_owner }}/cloudnative-frontend:latest
+          
+          echo "backend_sha=$BACKEND_IMAGE_SHA" >> $GITHUB_OUTPUT
+          echo "frontend_sha=$FRONTEND_IMAGE_SHA" >> $GITHUB_OUTPUT
+          echo "backend_latest=$BACKEND_IMAGE_LATEST" >> $GITHUB_OUTPUT
+          echo "frontend_latest=$FRONTEND_IMAGE_LATEST" >> $GITHUB_OUTPUT
 
-      # 8️⃣ Run containers for healthcheck
-      - name: Run containers
-        shell: powershell
+      # Tag et Push Backend
+      - name: Tag and Push Backend Image
         run: |
-          docker run -d --name backend-test -p 3000:3000 backend-ci
-          docker run -d --name frontend-test -p 8080:80 frontend-ci
-          docker ps
-
-      # 9️⃣ Check backend health
-      - name: Check backend health
-        shell: powershell
+          docker tag backend-ci ${{ steps.image_tags.outputs.backend_sha }}
+          docker tag backend-ci ${{ steps.image_tags.outputs.backend_latest }}
+          docker push ${{ steps.image_tags.outputs.backend_sha }}
+          docker push ${{ steps.image_tags.outputs.backend_latest }}
+          
+      # Tag et Push Frontend
+      - name: Tag and Push Frontend Image
         run: |
-          try {
-              Invoke-WebRequest -UseBasicParsing -Uri http://localhost:3000 -TimeoutSec 10
-          } catch {
-              Write-Error "Backend healthcheck failed"
-              exit 1
-          }
-
-      # 🔟 Check frontend health
-      - name: Check frontend health
-        shell: powershell
-        run: |
-          try {
-              Invoke-WebRequest -UseBasicParsing -Uri http://localhost:8080 -TimeoutSec 10
-          } catch {
-              Write-Error "Frontend healthcheck failed"
-              exit 1
-          }
+          docker tag frontend-ci ${{ steps.image_tags.outputs.frontend_sha }}
+          docker tag frontend-ci ${{ steps.image_tags.outputs.frontend_latest }}
+          docker push ${{ steps.image_tags.outputs.frontend_sha }}
+          docker push ${{ steps.image_tags.outputs.frontend_latest }}
