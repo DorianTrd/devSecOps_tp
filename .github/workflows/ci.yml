@@ -79,4 +79,4 @@ jobs:
         working-directory: backend
         run: |
           & "C:\sonar\sonar-scanner-5.0.1.3006-windows\bin\sonar-scanner.bat" `
-          -D"sonar.login=$env:SONAR_TOKEN" \ -D"sonar.qualitygate.wait=false"
+          -D"sonar.login=$env:SONAR_TOKEN"
