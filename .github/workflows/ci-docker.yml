@@ -1,8 +1,9 @@
 name: Test Docker Login
 
 on:
-  workflow_dispatch:
-
+  pull_request:
+    branches:
+      - main
 jobs:
   docker-login-test:
     runs-on: self-hosted
