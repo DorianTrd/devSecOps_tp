@@ -8,8 +8,6 @@ jobs:
   docker-build-and-push:
     # Exécution sur le runner local
     runs-on: self-hosted
-    # Nécessite que le build/test ait réussi
-    needs: [build-and-test, sonarcloud]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
