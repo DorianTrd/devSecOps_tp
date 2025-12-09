@@ -523,6 +523,53 @@ docker pull doriantardieu/cloudnative-backend:latest
 docker pull doriantardieu/cloudnative-frontend:latest
 
 
+# TP4 – Déploiement automatique de l’application depuis la CI locale
+
+Le déploiement automatique ne s’exécute que sur la branche main
+
+Grace au nouveau jobs deploy et au fichier deploy.ps1 
+
+```bash
+
+deploy:
+    runs-on: self-hosted
+    needs: build-and-push
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy via script
+        shell: powershell
+        run: ./scripts/deploy.ps1
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+```
+
+```bash
+$ErrorActionPreference = "Stop"
+
+$GITHUB_SHA = $env:GITHUB_SHA
+$USERNAME = $env:DOCKERHUB_USERNAME
+
+Write-Host "🛑 Arrêt des conteneurs existants..."
+docker compose down
+
+Write-Host "⬇️ Pull des dernières images..."
+docker pull "$USERNAME/cloudnative-backend:$GITHUB_SHA"
+docker pull "$USERNAME/cloudnative-frontend:$GITHUB_SHA"
+
+Write-Host "🔄 Redémarrage de l'environnement..."
+docker compose up -d
+
+Write-Host "✅ Déploiement terminé !"
+docker compose ps
+```
+Le deploiement se fait comme il faut
+
+![alt text](/screenshots/image-25.png)
+
+
 <br><br><br><br><br>
 A complete fullstack gym management application built with modern web technologies.
 
