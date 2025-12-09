@@ -1,0 +1,44 @@
+name: CI Pipeline Docker
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+
+jobs:
+
+  build-and-push-docker:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+
+      # Login Docker registry
+      - name: Docker login
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u <username> --password-stdin
+
+      # Build backend
+      - name: Build backend Docker image
+        run: docker build -t backend-ci ./backend
+
+      # Build frontend
+      - name: Build frontend Docker image
+        run: docker build -t frontend-ci ./frontend
+
+      # Tag & push backend
+      - name: Tag & push backend
+        run: |
+          docker tag backend-ci ghcr.io/<username>/cloudnative-backend:${{ github.sha }}
+          docker push ghcr.io/<username>/cloudnative-backend:${{ github.sha }}
+
+      # Tag & push frontend
+      - name: Tag & push frontend
+        run: |
+          docker tag frontend-ci ghcr.io/<username>/cloudnative-frontend:${{ github.sha }}
+          docker push ghcr.io/<username>/cloudnative-frontend:${{ github.sha }}
+
+
+      - name: Run containers for healthcheck
+        run: |
+          docker run -d -p 3000:3000 backend-ci
+          docker run -d -p 8080:80 frontend-ci
