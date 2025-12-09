@@ -78,5 +78,5 @@ jobs:
       - name: Run SonarScanner (backend)
         working-directory: backend
         run: |
-          & "C:\sonar-scanner\bin\sonar-scanner.bat" `
+          & "C:\sonar\sonar-scanner-5.0.1.3006-windows\bin\sonar-scanner.bat" `
           -D"sonar.login=$env:SONAR_TOKEN"
