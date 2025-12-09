@@ -327,17 +327,195 @@ Test local pour le front
 
 ![alt text](/screenshots/image-15.png)
 
-Lancement du localhost : 
+Lancement du localhost sans BDD et back: 
 
 ![alt text](/screenshots/image-16.png)
 
 ## Partie 2
 
+Mise en place du docker-compose
 
-![alt text](image.png)
+```bash
+
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend-test
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: "postgresql://myuser:mypassword@db:5432/mydatabase"
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend-test
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+  db:
+    image: postgres:15-alpine
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydatabase
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:
+
+```
 
 
-![alt text](image-1.png)
+
+Mise en place des seed et des migrates
+
+![alt text](/screenshots/image-19.png)
+
+
+puis lancement de docker compose up --build  
+
+![alt text](/screenshots/image-20.png)
+
+Et si je me connecte avec un compte des seeds, j'accede au dashboard ! 
+
+![alt text](/screenshots/image-18.png)
+
+
+## Partie 3 
+
+Création d'un token de DockerHub avec ecriture et lecture autorisé
+
+![alt text](/screenshots/image-23.png)
+
+Creation d'un token Github a partir d'un token venant de DockerHub
+
+![alt text](/screenshots/image-21.png)
+
+Dès lors il faut réaliser le jobs de docker pour lancé les build des images , puis un tests de leur bonne initialisation et efin le push du tag et de l'image 
+
+```bash
+
+name: CI Docker
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: self-hosted
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    steps:
+      # 1️⃣ Checkout du code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2️⃣ Docker Hub Login
+      - name: Docker Hub Login
+        shell: powershell
+        run: docker login -u $env:DOCKERHUB_USERNAME -p $env:DOCKERHUB_TOKEN
+
+      # 3️⃣ Build Backend
+      - name: Build backend image
+        shell: powershell
+        run: docker build -t backend-ci ./backend
+
+      # 4️⃣ Build Frontend
+      - name: Build frontend image
+        shell: powershell
+        run: docker build -t frontend-ci ./frontend
+
+      # 5️⃣ Healthcheck Backend
+      - name: Run backend container and test
+        shell: powershell
+        run: |
+          # Supprimer l'ancien container si présent
+          $existing = docker ps -a -q -f name=backend-test
+          if ($existing) { docker rm -f backend-test }
+
+          # Lancer le container
+          docker run -d -p 3000:3000 --name backend-test backend-ci
+
+          # Attendre un peu pour le démarrage
+          Start-Sleep -Seconds 10
+
+          # Vérifier que le container tourne
+          $running = docker ps -q -f name=backend-test
+          if (-not $running) {
+              Write-Error "Backend container failed to start"
+              exit 1
+          }
+
+          # Supprimer le container après test
+          docker rm -f backend-test
+
+      # 6️⃣ Healthcheck Frontend
+      - name: Run frontend container and test
+        shell: powershell
+        run: |
+          $existing = docker ps -a -q -f name=frontend-test
+          if ($existing) { docker rm -f frontend-test }
+
+          docker run -d -p 8080:80 --name frontend-test frontend-ci
+          Start-Sleep -Seconds 10
+
+          # Vérifier que le container tourne
+          $running = docker ps -q -f name=frontend-test
+          if (-not $running) {
+              Write-Error "Frontend container failed to start"
+              exit 1
+          }
+
+          docker rm -f frontend-test
+
+      # 7️⃣ Tag + Push Backend
+      - name: Tag & push backend image
+        shell: powershell
+        run: |
+          docker tag backend-ci $env:DOCKERHUB_USERNAME/cloudnative-backend:${{ github.sha }}
+          docker tag backend-ci $env:DOCKERHUB_USERNAME/cloudnative-backend:latest
+          docker push $env:DOCKERHUB_USERNAME/cloudnative-backend:${{ github.sha }}
+          docker push $env:DOCKERHUB_USERNAME/cloudnative-backend:latest
+
+      # 8️⃣ Tag + Push Frontend
+      - name: Tag & push frontend image
+        shell: powershell
+        run: |
+          docker tag frontend-ci $env:DOCKERHUB_USERNAME/cloudnative-frontend:${{ github.sha }}
+          docker tag frontend-ci $env:DOCKERHUB_USERNAME/cloudnative-frontend:latest
+          docker push $env:DOCKERHUB_USERNAME/cloudnative-frontend:${{ github.sha }}
+          docker push $env:DOCKERHUB_USERNAME/cloudnative-frontend:latest
+
+```
+
+Enfin, le pipeline passe
+
+![alt text](/screenshots/image-22.png)
+
+
+Lien des images Docker
+
+
+
 <br><br><br><br><br>
 A complete fullstack gym management application built with modern web technologies.
 
