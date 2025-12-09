@@ -1,78 +1,78 @@
-name: CI/CD Pipeline
+  name: CI/CD Pipeline
 
-on:
-  pull_request:
-    branches:
-      - develop
-      - main
+  on:
+    pull_request:
+      branches:
+        - develop
+        - main
 
-jobs:
+  jobs:
 
-  docker-build-and-push:
-    # Exécution sur le runner local
-    runs-on: self-hosted
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+    docker-build-and-push:
+      # Exécution sur le runner local
+      runs-on: self-hosted
+      steps:
+        - name: Checkout Code
+          uses: actions/checkout@v4
 
-      # 1. Construire les images Docker (utiliser le multi-stage 'production' pour l'optimisation)
-      - name: Build Backend Image
-        run: docker build -t backend-ci ./backend --target production
-      
-      - name: Build Frontend Image
-        run: docker build -t frontend-ci ./frontend --target production
-
-      # 2. Vérifier que les images tournent (healthcheck simple)
-      - name: Simple Backend Healthcheck
-        run: |
-          docker run -d -p 3000:3000 --name backend-test backend-ci
-          # Attendre un peu que l'app démarre
-          sleep 5 
-          # Tester si l'API répond (nécessite curl)
-          docker exec backend-test sh -c "apk add curl; curl -s -f http://localhost:3000 || exit 1"
-          docker rm -f backend-test
-        # Utiliser un service de test plus adapté si nécessaire
+        # 1. Construire les images Docker (utiliser le multi-stage 'production' pour l'optimisation)
+        - name: Build Backend Image
+          run: docker build -t backend-ci ./backend --target production
         
-      - name: Simple Frontend Healthcheck
-        run: |
-          docker run -d -p 8080:80 --name frontend-test frontend-ci
-          sleep 5 
-          docker exec frontend-test sh -c "apk add curl; curl -s -f http://localhost:80 || exit 1"
-          docker rm -f frontend-test
+        - name: Build Frontend Image
+          run: docker build -t frontend-ci ./frontend --target production
 
-      # 3. Taguer et pousser dans le registre distant (GHCR)
-      - name: Log in to GitHub Container Registry (GHCR)
-        # Utilisation de GITHUB_TOKEN généré par GitHub Actions pour l'authentification
-        run: echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u ${{ DorianTrd }} --password-stdin
-        # Remplacez ${{ github.actor }} par votre nom d'utilisateur si GITHUB_TOKEN n'a pas les droits nécessaires
-        # Si vous utilisez DOCKER_USERNAME/DOCKER_PASSWORD pour Docker Hub, utilisez-les ici.
-      
-      # Définition des tags
-      - name: Define Image Tags
-        id: image_tags
-        run: |
-          BACKEND_IMAGE_SHA=ghcr.io/${{ github.repository_owner }}/cloudnative-backend:${{ github.sha }}
-          FRONTEND_IMAGE_SHA=ghcr.io/${{ github.repository_owner }}/cloudnative-frontend:${{ github.sha }}
-          BACKEND_IMAGE_LATEST=ghcr.io/${{ github.repository_owner }}/cloudnative-backend:latest
-          FRONTEND_IMAGE_LATEST=ghcr.io/${{ github.repository_owner }}/cloudnative-frontend:latest
+        # 2. Vérifier que les images tournent (healthcheck simple)
+        - name: Simple Backend Healthcheck
+          run: |
+            docker run -d -p 3000:3000 --name backend-test backend-ci
+            # Attendre un peu que l'app démarre
+            sleep 5 
+            # Tester si l'API répond (nécessite curl)
+            docker exec backend-test sh -c "apk add curl; curl -s -f http://localhost:3000 || exit 1"
+            docker rm -f backend-test
+          # Utiliser un service de test plus adapté si nécessaire
           
-          echo "backend_sha=$BACKEND_IMAGE_SHA" >> $GITHUB_OUTPUT
-          echo "frontend_sha=$FRONTEND_IMAGE_SHA" >> $GITHUB_OUTPUT
-          echo "backend_latest=$BACKEND_IMAGE_LATEST" >> $GITHUB_OUTPUT
-          echo "frontend_latest=$FRONTEND_IMAGE_LATEST" >> $GITHUB_OUTPUT
+        - name: Simple Frontend Healthcheck
+          run: |
+            docker run -d -p 8080:80 --name frontend-test frontend-ci
+            sleep 5 
+            docker exec frontend-test sh -c "apk add curl; curl -s -f http://localhost:80 || exit 1"
+            docker rm -f frontend-test
 
-      # Tag et Push Backend
-      - name: Tag and Push Backend Image
-        run: |
-          docker tag backend-ci ${{ steps.image_tags.outputs.backend_sha }}
-          docker tag backend-ci ${{ steps.image_tags.outputs.backend_latest }}
-          docker push ${{ steps.image_tags.outputs.backend_sha }}
-          docker push ${{ steps.image_tags.outputs.backend_latest }}
-          
-      # Tag et Push Frontend
-      - name: Tag and Push Frontend Image
-        run: |
-          docker tag frontend-ci ${{ steps.image_tags.outputs.frontend_sha }}
-          docker tag frontend-ci ${{ steps.image_tags.outputs.frontend_latest }}
-          docker push ${{ steps.image_tags.outputs.frontend_sha }}
-          docker push ${{ steps.image_tags.outputs.frontend_latest }}
+        # 3. Taguer et pousser dans le registre distant (GHCR)
+        - name: Log in to GitHub Container Registry (GHCR)
+          # Utilisation de GITHUB_TOKEN généré par GitHub Actions pour l'authentification
+          run: echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u ${{ DorianTrd }} --password-stdin
+          # Remplacez ${{ github.actor }} par votre nom d'utilisateur si GITHUB_TOKEN n'a pas les droits nécessaires
+          # Si vous utilisez DOCKER_USERNAME/DOCKER_PASSWORD pour Docker Hub, utilisez-les ici.
+        
+        # Définition des tags
+        - name: Define Image Tags
+          id: image_tags
+          run: |
+            BACKEND_IMAGE_SHA=ghcr.io/${{ github.repository_owner }}/cloudnative-backend:${{ github.sha }}
+            FRONTEND_IMAGE_SHA=ghcr.io/${{ github.repository_owner }}/cloudnative-frontend:${{ github.sha }}
+            BACKEND_IMAGE_LATEST=ghcr.io/${{ github.repository_owner }}/cloudnative-backend:latest
+            FRONTEND_IMAGE_LATEST=ghcr.io/${{ github.repository_owner }}/cloudnative-frontend:latest
+            
+            echo "backend_sha=$BACKEND_IMAGE_SHA" >> $GITHUB_OUTPUT
+            echo "frontend_sha=$FRONTEND_IMAGE_SHA" >> $GITHUB_OUTPUT
+            echo "backend_latest=$BACKEND_IMAGE_LATEST" >> $GITHUB_OUTPUT
+            echo "frontend_latest=$FRONTEND_IMAGE_LATEST" >> $GITHUB_OUTPUT
+
+        # Tag et Push Backend
+        - name: Tag and Push Backend Image
+          run: |
+            docker tag backend-ci ${{ steps.image_tags.outputs.backend_sha }}
+            docker tag backend-ci ${{ steps.image_tags.outputs.backend_latest }}
+            docker push ${{ steps.image_tags.outputs.backend_sha }}
+            docker push ${{ steps.image_tags.outputs.backend_latest }}
+            
+        # Tag et Push Frontend
+        - name: Tag and Push Frontend Image
+          run: |
+            docker tag frontend-ci ${{ steps.image_tags.outputs.frontend_sha }}
+            docker tag frontend-ci ${{ steps.image_tags.outputs.frontend_latest }}
+            docker push ${{ steps.image_tags.outputs.frontend_sha }}
+            docker push ${{ steps.image_tags.outputs.frontend_latest }}
