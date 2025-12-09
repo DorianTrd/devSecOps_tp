@@ -511,9 +511,16 @@ Enfin, le pipeline passe
 
 ![alt text](/screenshots/image-22.png)
 
+Image sur DockerHub
+
+![alt text](/screenshots/image-24.png)
+
 
 Lien des images Docker
 
+docker pull doriantardieu/cloudnative-backend:latest
+
+docker pull doriantardieu/cloudnative-frontend:latest
 
 
 <br><br><br><br><br>
