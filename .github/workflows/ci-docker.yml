@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI Docker
 
 on:
   pull_request:
@@ -7,49 +7,57 @@ on:
       - main
 
 jobs:
-  docker-build-and-push:
+  build-and-push:
     runs-on: self-hosted
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
 
-      # 1. Construire les images Docker
-      - name: Build Backend Image
+    steps:
+      # 1. Récupération du code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. Connexion à Docker Hub
+      - name: Docker Hub Login
+        run: |
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      # 3. Build Backend
+      - name: Build backend image
         run: docker build -t backend-ci ./backend
-        
-      - name: Build Frontend Image
+
+      # 4. Build Frontend
+      - name: Build frontend image
         run: docker build -t frontend-ci ./frontend
 
-      # 2. Healthcheck simple
-      - name: Simple Backend Healthcheck
+      # 5. Healthcheck backend
+      - name: Run backend container and test
         run: |
+          docker rm -f backend-test || true
           docker run -d -p 3000:3000 --name backend-test backend-ci
           sleep 5
-          docker exec backend-test sh -c "apk add curl; curl -s -f http://localhost:3000 || exit 1"
+          curl -f http://localhost:3000 || exit 1
           docker rm -f backend-test
-          
-      - name: Simple Frontend Healthcheck
+
+      # 6. Healthcheck frontend
+      - name: Run frontend container and test
         run: |
+          docker rm -f frontend-test || true
           docker run -d -p 8080:80 --name frontend-test frontend-ci
           sleep 5
-          docker exec frontend-test sh -c "apk add curl; curl -s -f http://localhost:80 || exit 1"
+          curl -f http://localhost:8080 || exit 1
           docker rm -f frontend-test
 
-      # 3. Login GHCR
-      - name: Log in to GitHub Container Registry (GHCR)
-        run: echo ${{ secrets.GHCR_PAT }} | docker login ghcr.io -u DorianTrd --password-stdin
+      # 7. Tag + Push backend
+      - name: Tag & push backend image
+        run: |
+          docker tag backend-ci ${{ secrets.DOCKERHUB_USERNAME }}/cloudnative-backend:${{ github.sha }}
+          docker tag backend-ci ${{ secrets.DOCKERHUB_USERNAME }}/cloudnative-backend:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/cloudnative-backend:${{ github.sha }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/cloudnative-backend:latest
 
-      # 4. Tag et Push
-      - name: Tag and Push Backend Image
+      # 8. Tag + Push frontend
+      - name: Tag & push frontend image
         run: |
-          docker tag backend-ci ghcr.io/DorianTrd/cloudnative-backend:${{ github.sha }}
-          docker tag backend-ci ghcr.io/DorianTrd/cloudnative-backend:latest
-          docker push ghcr.io/DorianTrd/cloudnative-backend:${{ github.sha }}
-          docker push ghcr.io/DorianTrd/cloudnative-backend:latest
-          
-      - name: Tag and Push Frontend Image
-        run: |
-          docker tag frontend-ci ghcr.io/DorianTrd/cloudnative-frontend:${{ github.sha }}
-          docker tag frontend-ci ghcr.io/DorianTrd/cloudnative-frontend:latest
-          docker push ghcr.io/DorianTrd/cloudnative-frontend:${{ github.sha }}
-          docker push ghcr.io/DorianTrd/cloudnative-frontend:latest
+          docker tag frontend-ci ${{ secrets.DOCKERHUB_USERNAME }}/cloudnative-frontend:${{ github.sha }}
+          docker tag frontend-ci ${{ secrets.DOCKERHUB_USERNAME }}/cloudnative-frontend:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/cloudnative-frontend:${{ github.sha }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/cloudnative-frontend:latest
