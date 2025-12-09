@@ -78,10 +78,7 @@ jobs:
       - name: Run SonarCloud scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        shell: powershell
         run: |
           cd backend
-          sonar-scanner \
-            -Dsonar.login=$SONAR_TOKEN \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.projectKey=DorianTrd_devSecOps_tp \
-            -Dsonar.organization=DorianTrd
+          sonar-scanner -Dsonar.login=$env:SONAR_TOKEN -Dsonar.host.url=https://sonarcloud.io -Dsonar.projectKey=DorianTrd_devSecOps_tp -Dsonar.organization=DorianTrd
