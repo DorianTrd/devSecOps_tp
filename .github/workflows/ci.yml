@@ -55,65 +55,35 @@ jobs:
       - name: Run backend tests
         run: npm test --prefix backend
 
-    sonar:
+  sonar:
     runs-on: self-hosted
     needs: test
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     steps:
-      # --- Checkout propre ---
-      - name: Checkout repository
-        uses: actions/checkout@v3
-        with:
-          clean: true
+      - uses: actions/checkout@v3
 
-      # --- Nettoyage du workspace ---  
-      # (supprime tout ce qui traîne entre les runs)
-      - name: Reset workspace
-        run: git clean -fdx
-
-      # --- Debug pour vérifier que backend existe ---
-      - name: Debug workspace
-        run: |
-          echo "Node version before setup:"
-          node -v
-          echo "Npm version before setup:"
-          npm -v
-          echo "Workspace content:"
-          ls -R .
-
-      # --- Setup Node 18 (npm 10 par défaut) ---
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      # --- Fix npm (downgrade à la version stable 9) ---
-      - name: Downgrade npm (fix npm 10 bug)
+      - name: Downgrade npm (fix npm spec error)
         run: npm install -g npm@9
 
-      # --- Nettoyage backend ---
       - name: Clean backend node_modules
         shell: powershell
         run: |
           Remove-Item -Recurse -Force backend/node_modules -ErrorAction SilentlyContinue
           Remove-Item -Force backend/package-lock.json -ErrorAction SilentlyContinue
 
-      # --- Installation backend ---
       - name: Install backend dependencies
         run: npm install --prefix backend
 
-      # --- Debug backend après install ---
-      - name: Debug backend folder
-        run: ls -R backend
-
-      # --- Exécution SonarCloud ---
       - name: Run SonarCloud scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           cd backend
-          npx sonar-scanner \
-            -Dsonar.login=$SONAR_TOKEN \
-            -Dsonar.host.url=https://sonarcloud.io
+          npx sonar-scanner -Dsonar.login=$SONAR_TOKEN -Dsonar.host.url=https://sonarcloud.io
