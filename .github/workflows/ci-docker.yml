@@ -101,7 +101,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Deploy via script
-        shell: bash
+        shell: powershell
         run: ./scripts/deploy.sh
         env:
           GITHUB_SHA: ${{ github.sha }}

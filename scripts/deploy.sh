@@ -1,17 +1,17 @@
-set -e
+$ErrorActionPreference = "Stop"
 
-GITHUB_SHA=${GITHUB_SHA:-latest}
-USERNAME=${DOCKERHUB_USERNAME:-"<username>"}
+$GITHUB_SHA = $env:GITHUB_SHA
+$USERNAME = $env:DOCKERHUB_USERNAME
 
-echo "🛑 Arrêt des conteneurs existants..."
+Write-Host "🛑 Arrêt des conteneurs existants..."
 docker compose down
 
-echo "⬇️ Pull des dernières images..."
-docker pull $USERNAME/cloudnative-backend:$GITHUB_SHA
-docker pull $USERNAME/cloudnative-frontend:$GITHUB_SHA
+Write-Host "⬇️ Pull des dernières images..."
+docker pull "$USERNAME/cloudnative-backend:$GITHUB_SHA"
+docker pull "$USERNAME/cloudnative-frontend:$GITHUB_SHA"
 
-echo "🔄 Redémarrage de l'environnement..."
+Write-Host "🔄 Redémarrage de l'environnement..."
 docker compose up -d
 
-echo "✅ Déploiement terminé !"
+Write-Host "✅ Déploiement terminé !"
 docker compose ps
