@@ -14,11 +14,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2️⃣ Login Docker Hub avec secrets (quotes obligatoires)
+
       - name: Docker Hub Login
         shell: powershell
         run: |
-          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+          $env:TOKEN="${{ secrets.DOCKERHUB_TOKEN }}"
+          $env:USERNAME="${{ secrets.DOCKERHUB_USERNAME }}"
+          echo $env:TOKEN | docker login -u $env:USERNAME --password-stdin
 
       # 3️⃣ Build Backend
       - name: Build backend image
