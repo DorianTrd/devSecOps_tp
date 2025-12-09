@@ -1,18 +1,69 @@
-name: Test Docker Login
+name: CI Docker
 
 on:
   pull_request:
     branches:
       - main
-jobs:
-  docker-login-test:
-    runs-on: self-hosted
-    steps:
-      - uses: actions/checkout@v4
 
-      - name: Docker login
+jobs:
+  build-and-push:
+    runs-on: self-hosted
+
+    steps:
+      # 1️⃣ Checkout du code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2️⃣ Login Docker Hub avec secrets (quotes obligatoires)
+      - name: Docker Hub Login
+        shell: pwsh
         run: |
           echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-      - name: Docker info
-        run: docker info
+      # 3️⃣ Build Backend
+      - name: Build backend image
+        shell: pwsh
+        run: docker build -t backend-ci ./backend
+
+      # 4️⃣ Build Frontend
+      - name: Build frontend image
+        shell: pwsh
+        run: docker build -t frontend-ci ./frontend
+
+      # 5️⃣ Healthcheck Backend
+      - name: Run backend container and test
+        shell: pwsh
+        run: |
+          docker rm -f backend-test -ErrorAction SilentlyContinue
+          docker run -d -p 3000:3000 --name backend-test backend-ci
+          Start-Sleep -Seconds 10
+          Invoke-WebRequest -Uri http://localhost:3000 -UseBasicParsing
+          docker rm -f backend-test
+
+      # 6️⃣ Healthcheck Frontend
+      - name: Run frontend container and test
+        shell: pwsh
+        run: |
+          docker rm -f frontend-test -ErrorAction SilentlyContinue
+          docker run -d -p 8080:80 --name frontend-test frontend-ci
+          Start-Sleep -Seconds 10
+          Invoke-WebRequest -Uri http://localhost:8080 -UseBasicParsing
+          docker rm -f frontend-test
+
+      # 7️⃣ Tag + Push Backend
+      - name: Tag & push backend image
+        shell: pwsh
+        run: |
+          docker tag backend-ci ${{ secrets.DOCKERHUB_USERNAME }}/cloudnative-backend:${{ github.sha }}
+          docker tag backend-ci ${{ secrets.DOCKERHUB_USERNAME }}/cloudnative-backend:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/cloudnative-backend:${{ github.sha }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/cloudnative-backend:latest
+
+      # 8️⃣ Tag + Push Frontend
+      - name: Tag & push frontend image
+        shell: pwsh
+        run: |
+          docker tag frontend-ci ${{ secrets.DOCKERHUB_USERNAME }}/cloudnative-frontend:${{ github.sha }}
+          docker tag frontend-ci ${{ secrets.DOCKERHUB_USERNAME }}/cloudnative-frontend:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/cloudnative-frontend:${{ github.sha }}
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/cloudnative-frontend:latest
