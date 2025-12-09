@@ -1,63 +1,17 @@
-name: CI Docker
+name: Test Docker Login
 
 on:
-  pull_request:
-    branches:
-      - develop
-      - main
+  workflow_dispatch:
 
 jobs:
-  build-and-push:
+  docker-login-test:
     runs-on: self-hosted
-
     steps:
-      # 1. Récupération du code
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      # 2. Connexion à Docker Hub
-      - name: Docker Hub Login
+      - name: Docker login
         run: |
           echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
-      # 3. Build Backend
-      - name: Build backend image
-        run: docker build -t backend-ci ./backend
-
-      # 4. Build Frontend
-      - name: Build frontend image
-        run: docker build -t frontend-ci ./frontend
-
-      # 5. Healthcheck backend
-      - name: Run backend container and test
-        run: |
-          docker rm -f backend-test || true
-          docker run -d -p 3000:3000 --name backend-test backend-ci
-          sleep 5
-          curl -f http://localhost:3000 || exit 1
-          docker rm -f backend-test
-
-      # 6. Healthcheck frontend
-      - name: Run frontend container and test
-        run: |
-          docker rm -f frontend-test || true
-          docker run -d -p 8080:80 --name frontend-test frontend-ci
-          sleep 5
-          curl -f http://localhost:8080 || exit 1
-          docker rm -f frontend-test
-
-      # 7. Tag + Push backend
-      - name: Tag & push backend image
-        run: |
-          docker tag backend-ci ${{ secrets.DOCKERHUB_USERNAME }}/cloudnative-backend:${{ github.sha }}
-          docker tag backend-ci ${{ secrets.DOCKERHUB_USERNAME }}/cloudnative-backend:latest
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/cloudnative-backend:${{ github.sha }}
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/cloudnative-backend:latest
-
-      # 8. Tag + Push frontend
-      - name: Tag & push frontend image
-        run: |
-          docker tag frontend-ci ${{ secrets.DOCKERHUB_USERNAME }}/cloudnative-frontend:${{ github.sha }}
-          docker tag frontend-ci ${{ secrets.DOCKERHUB_USERNAME }}/cloudnative-frontend:latest
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/cloudnative-frontend:${{ github.sha }}
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/cloudnative-frontend:latest
+      - name: Docker info
+        run: docker info
