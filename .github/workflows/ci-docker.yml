@@ -107,3 +107,34 @@ jobs:
           GITHUB_SHA: ${{ github.sha }}
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
 
+
+  blue-green-deploy:
+    runs-on: self-hosted
+    needs: build-and-push
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Docker Login
+        run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Deploy new version
+        run: |
+          # Choisir la couleur inactive
+          if [[ "$(cat active_color.txt)" == "blue" ]]; then
+            NEW_COLOR=green
+          else
+            NEW_COLOR=blue
+          fi
+
+          # Déploiement Docker Compose
+          docker compose -f docker-compose.base.yml -f docker-compose.$NEW_COLOR.yml up -d
+
+          # Mettre à jour le reverse proxy (ex : fichier active_color.txt monté)
+          echo $NEW_COLOR > active_color.txt
+          docker exec reverse-proxy nginx -s reload
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          GITHUB_SHA: ${{ github.sha }}
+
