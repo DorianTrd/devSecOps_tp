@@ -60,7 +60,6 @@ jobs:
     needs: test
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
     steps:
       - uses: actions/checkout@v3
 
@@ -69,14 +68,11 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Downgrade npm (fix npm spec error)
-        run: npm install -g npm@9
-
       - name: Clean backend node_modules
         shell: powershell
         run: |
-          Remove-Item -Recurse -Force backend/node_modules -ErrorAction SilentlyContinue
-          Remove-Item -Force backend/package-lock.json -ErrorAction SilentlyContinue
+          Remove-Item -Recurse -Force backend\node_modules -ErrorAction SilentlyContinue
+          Remove-Item -Force backend\package-lock.json -ErrorAction SilentlyContinue
 
       - name: Install backend dependencies
         run: npm install --prefix backend
