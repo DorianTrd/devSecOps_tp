@@ -55,31 +55,28 @@ jobs:
       - name: Run backend tests
         run: npm test --prefix backend
 
-  sonar:
+  sonarcloud:
     runs-on: self-hosted
-    needs: test
+    needs: tests
+
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
-
-      - name: Clean backend node_modules
-        shell: powershell
-        run: |
-          Remove-Item -Recurse -Force backend\node_modules -ErrorAction SilentlyContinue
-          Remove-Item -Force backend\package-lock.json -ErrorAction SilentlyContinue
+          node-version: "20"
 
       - name: Install backend dependencies
-        run: npm install --prefix backend
+        working-directory: backend
+        run: npm install
 
-      - name: Run SonarCloud scan
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Run SonarScanner (backend)
+        working-directory: backend
         run: |
-          cd backend
-          npx sonar-scanner -Dsonar.login=$SONAR_TOKEN -Dsonar.host.url=https://sonarcloud.io
+          & "C:\sonar-scanner\bin\sonar-scanner.bat" `
+          -D"sonar.login=$env:SONAR_TOKEN"
