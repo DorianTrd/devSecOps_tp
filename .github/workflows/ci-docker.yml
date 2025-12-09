@@ -17,7 +17,7 @@ jobs:
       - name: Docker login
         shell: powershell
         run: |
-          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u DorianTrd --password-stdin
+          echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u DorianTrd --password-stdin
 
       # 3️⃣ Build backend
       - name: Build backend Docker image
