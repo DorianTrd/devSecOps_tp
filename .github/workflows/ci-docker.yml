@@ -37,11 +37,27 @@ jobs:
       - name: Run backend container and test
         shell: powershell
         run: |
-          docker rm -f backend-test -ErrorAction SilentlyContinue
+          # Supprimer l'ancien container si présent
+          $existing = docker ps -a -q -f name=backend-test
+          if ($existing) { docker rm -f backend-test }
+
+          # Lancer le container
           docker run -d -p 3000:3000 --name backend-test backend-ci
+
+          # Attendre que le backend démarre
           Start-Sleep -Seconds 10
-          Invoke-WebRequest -Uri http://localhost:3000 -UseBasicParsing
+
+          # Healthcheck sur la route réelle du backend
+          try {
+              Invoke-WebRequest -Uri http://localhost:3000/api -UseBasicParsing -TimeoutSec 5
+          } catch {
+              Write-Error "Backend healthcheck failed"
+              exit 1
+          }
+
+          # Supprimer le container après test
           docker rm -f backend-test
+
 
       # 6️⃣ Healthcheck Frontend
       - name: Run frontend container and test
