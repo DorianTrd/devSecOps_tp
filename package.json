@@ -5,7 +5,7 @@
     "husky": "^9.1.7"
   },
   "scripts": {
-    "prepare": "husky install",
+    "prepare": "npx husky install",
     "lint:front": "cd frontend && npm run lint",
     "lint:back": "cd backend && npm run lint",
     "lint:all": "npm run lint:front && npm run lint:back"
