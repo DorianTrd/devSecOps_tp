@@ -613,7 +613,6 @@ Les deux environnements doivent pouvoir coexister en partageant la même base de
 ### Résultat
 
 Composants up 
-
 ![alt text](/screenshots/tp5-services-up.png)
 
 
