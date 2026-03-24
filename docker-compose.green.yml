@@ -5,8 +5,16 @@ services:
       DATABASE_URL: "postgresql://myuser:mypassword@db:5432/mydatabase"
     depends_on:
       - db
+    networks:
+      - app-network
 
   app-front-green:
     image: "${DOCKERHUB_USERNAME}/cloudnative-frontend-green:${GITHUB_SHA}"
     depends_on:
       - app-back-green
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    external: true
