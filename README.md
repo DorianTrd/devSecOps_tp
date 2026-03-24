@@ -578,24 +578,46 @@ Pour éviter qu'un simple docker compose up ne redémarre tous les services, j'a
 ### Architecture proposée
 J'utilise quatre fichiers distincts pour séparer les responsabilités.
 Le fichier docker-compose.base.yml contient les services partagés comme la base de données qui restent actifs en permanence.
-Les fichiers docker-compose.blue.yml et docker-compose.green.yml définissent respectivement les environnements blue et green. Chaque version utilise des ports différents pour éviter les conflits, par exemple 3001/8081 pour blue et 3002/8082 pour green.
-Le fichier docker-compose.proxy.yml configure le reverse proxy Nginx qui route le trafic vers l'environnement actif.
+Les fichiers docker-compose.blue.yml et docker-compose.green.yml définissent respectivement les environnements blue et green.
+Le reverse proxy Nginx est déclaré dans docker-compose.base.yml et utilise nginx/app.conf avec un fichier de bascule nginx/active_color.txt.
 
 ### Commandes de déploiement
 Pour démarrer avec blue en production :
 docker compose -f docker-compose.base.yml -f docker-compose.blue.yml up -d
-docker compose -f docker-compose.proxy.yml up -d
 Pour préparer green en parallèle :
 docker compose -f docker-compose.base.yml -f docker-compose.green.yml up -d
 ### Mécanisme de bascule
 
-La bascule s'effectue via une variable d'environnement ACTIVE_ENV qui peut valoir blue ou green. Le fichier de configuration Nginx utilise cette variable pour router le trafic. Pour basculer, je modifie la variable et je recharge Nginx avec docker exec proxy-container nginx -s reload.
+La bascule s'effectue via le fichier nginx/active_color.txt qui définit les upstreams actifs. Pour basculer, je mets à jour ce fichier puis je recharge Nginx avec docker exec devsecops_tp-reverse-proxy-1 nginx -s reload.
+
+### Logique de bascule documentée
+
+- Où est stockée la couleur active :
+  La couleur active est stockée dans nginx/active_color.txt. Ce fichier contient les directives Nginx set $active_backend et set $active_frontend.
+
+- Comment le pipeline détermine la prochaine cible :
+  Le script scripts/deploy.ps1 lit le contenu de nginx/active_color.txt. Si backend_blue est actif, la cible de déploiement devient green. Sinon, la cible devient blue. Le pipeline déploie toujours sur la couleur inactive, vérifie que les conteneurs démarrent, puis bascule le proxy.
+
+- Quel est le mécanisme de rollback :
+  Le rollback est géré par scripts/rollback.ps1. Le script inverse la couleur active dans nginx/active_color.txt puis exécute nginx -s reload dans le conteneur reverse-proxy. Le retour arrière est donc quasi instantané sans redémarrer toute la stack.
 
 ### Scénario de déploiement
 Au départ, blue est en production et sert le trafic. Pour déployer une nouvelle version, je démarre green en parallèle, je teste que tout fonctionne via ses ports spécifiques, puis je bascule le proxy sur green. Si un problème survient, je rebascule immédiatement sur blue en modifiant la variable et en rechargeant Nginx. Cette opération prend quelques secondes et ne provoque aucune interruption de service.
 
 ### Points d'attention
 Les deux environnements doivent pouvoir coexister en partageant la même base de données. Il faut donc veiller à ce que les migrations de schéma restent rétrocompatibles pendant la période de transition.
+
+
+### Résultat
+
+Composants up 
+
+![alt text](/screenshots/tp5-services-up.png)
+
+
+Je lance ensuite voir si le switch s'effectue sans coupure , ce qui est la cas : 
+
+![alt text](/screenshots/tp5-switch-no-downtime.png)
 
 <br><br><br><br><br>
 A complete fullstack gym management application built with modern web technologies.
