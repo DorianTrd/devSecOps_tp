@@ -621,6 +621,146 @@ Je lance ensuite voir si le switch s'effectue sans coupure , ce qui est la cas :
 
 ![alt text](/screenshots/tp5-switch-no-downtime.png)
 
+# TP6 – Monitoring & Observabilite d une application conteneurisee (NestJS / Vue / Postgres)
+
+### Objectif
+
+Mettre en place une stack complete de monitoring open-source en local avec:
+
+- Prometheus pour les metriques
+- Grafana pour les dashboards
+- Loki pour le stockage des logs
+- Promtail pour la collecte des logs Docker
+
+### Stack mise en place
+
+Fichiers ajoutes/configures:
+
+- docker-compose.monitoring.yml
+- monitoring/prometheus.yml
+- monitoring/promtail-config.yml
+- monitoring/loki-config.yaml
+- monitoring/grafana/provisioning/datasources/datasources.yml
+
+Instrumentation backend ajoutee:
+
+- endpoint /metrics sur le backend
+- metriques HTTP (compteur + latence)
+- metriques systeme Node.js via prom-client
+
+### Ports
+
+- Grafana: http://localhost:3000
+- Prometheus: http://localhost:9090
+- Loki: http://loki:3100 (interne docker)
+- Promtail: port 9080 (interne)
+
+### Architecture
+
+```text
+[App backend blue/green] --metrics--> [Prometheus] --datasource--> [Grafana]
+[Docker logs stdout] ----promtail--> [Loki] -------datasource--> [Grafana]
+```
+
+### Lancement de la stack monitoring
+
+```bash
+docker compose -f docker-compose.monitoring.yml up -d
+docker compose -f docker-compose.monitoring.yml ps
+```
+
+Verification rapide:
+
+- Prometheus targets: http://localhost:9090/targets
+- Metriques backend: http://localhost:9090 puis query sur http_requests_total ou http_request_duration_seconds
+- Grafana: http://localhost:3000
+
+### Metriques collectees
+
+- Backend blue: app-back-blue:3000/metrics
+- Backend green: app-back-green:3000/metrics
+- Conteneurs Docker via cadvisor
+
+### Logs collectes
+
+- Promtail lit les conteneurs Docker via docker_sd_configs (docker.sock)
+- Loki stocke les logs
+- Grafana Explore (Loki) permet de filtrer par service/container
+
+### Dashboards Grafana 
+
+Dashboard 1 - Metriques backend:
+
+- nombre de requetes HTTP
+- latence moyenne
+- erreurs par seconde
+- CPU/RAM conteneur backend
+- uptime
+
+
+
+Dashboard 2 - Logs:
+
+- logs par niveau
+- repartition des erreurs
+- correlation latence + logs
+
+
+
+### Livrables TP6
+
+1. Stack monitoring en running (compose ps)
+
+![alt text](/screenshots/tp6-image7.png)
+
+
+
+
+2. Prometheus target backend en UP (Status/Targets)
+
+![alt text](/screenshots/tp6-image4.png)
+
+
+
+3. Metriques Prometheus (query http_requests_total / http_request_duration_seconds)
+
+
+![alt text](/screenshots/tp6-image5.png)
+
+![alt text](/screenshots/tp6-image6.png)
+
+
+
+
+4. Logs backend visibles dans Grafana Explore (Loki)
+
+![alt text](/screenshots/tp6-image1.png)
+
+
+5. Dashboard metriques backend
+
+![alt text](/screenshots/tp6-image2.png)
+
+
+6. Dashboard logs et correlation
+
+![alt text](/screenshots/tp6-image3.png)
+
+
+
+
+
+### Commandes utiles
+
+```bash
+# relancer monitoring
+docker compose -f docker-compose.monitoring.yml down
+docker compose -f docker-compose.monitoring.yml up -d
+
+# logs monitoring
+docker compose -f docker-compose.monitoring.yml logs -f prometheus grafana loki promtail cadvisor
+```
+
 <br><br><br><br><br>
 A complete fullstack gym management application built with modern web technologies.
 
