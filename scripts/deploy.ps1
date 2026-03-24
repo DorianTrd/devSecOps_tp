@@ -3,7 +3,7 @@ $ErrorActionPreference = "Stop"
 $GITHUB_SHA = $env:GITHUB_SHA
 $USERNAME = $env:DOCKERHUB_USERNAME
 
-# 1. Lire la couleur active actuelle
+# 1. Read current active color
 $activeColorFile = "./nginx/active_color.txt"
 $activeColorContent = Get-Content $activeColorFile -Raw
 
@@ -15,36 +15,44 @@ if ($activeColorContent -match "backend_blue") {
     $inactiveColor = "blue"
 }
 
-Write-Host "🔵🟢 Couleur active : $activeColor → Déploiement sur : $inactiveColor"
+Write-Host "Active color: $activeColor -> Deploy target: $inactiveColor"
 
-# 2. Pull des nouvelles images (couleur inactive)
-Write-Host "⬇️ Pull des images $inactiveColor..."
+# 2. Pull images for inactive color
+Write-Host "Pull images for $inactiveColor..."
 docker pull "$USERNAME/cloudnative-backend-$inactiveColor`:$GITHUB_SHA"
 docker pull "$USERNAME/cloudnative-frontend-$inactiveColor`:$GITHUB_SHA"
 
-# 3. Déployer la nouvelle version sur la couleur inactive (sans toucher l'active)
-Write-Host "🚀 Déploiement de la version $inactiveColor..."
+# 3. Deploy inactive color without touching active one
+Write-Host "Deploy $inactiveColor..."
 docker compose -f docker-compose.base.yml -f "docker-compose.$inactiveColor.yml" up -d --no-recreate
 
-# Attendre que les conteneurs soient up
+# Wait until containers are up
 Start-Sleep -Seconds 15
 
-# 4. Vérifier que la nouvelle version est healthy
+# 4. Verify deployed backend is running
 $backContainer = "app-back-$inactiveColor"
 $running = docker ps -q -f "name=$backContainer"
 if (-not $running) {
-    Write-Error "❌ Le backend $inactiveColor n'a pas démarré. Rollback annulé, l'ancienne version ($activeColor) reste active."
+    Write-Error "Backend $inactiveColor did not start. Active version remains $activeColor."
     exit 1
 }
 
-# 5. Basculer le reverse proxy vers la nouvelle couleur
-Write-Host "🔀 Bascule du proxy vers $inactiveColor..."
-Set-Content $activeColorFile "set `$active_backend `"backend_$inactiveColor`";`nset `$active_frontend `"frontend_$inactiveColor`";"
+# 5. Switch reverse proxy to inactive color
+Write-Host "Switch proxy to $inactiveColor..."
+Set-Content -Path $activeColorFile -Value @(
+    "set `$active_backend `"backend_$inactiveColor`";",
+    "set `$active_frontend `"frontend_$inactiveColor`";"
+)
 
-# 6. Recharger Nginx sans downtime
-docker exec $(docker ps -q -f "name=reverse-proxy") nginx -s reload
+# 6. Reload Nginx without downtime
+$proxyContainerId = docker ps -q -f "name=reverse-proxy"
+if (-not $proxyContainerId) {
+    Write-Error "Reverse proxy container not found."
+    exit 1
+}
+docker exec $proxyContainerId nginx -s reload
 
-Write-Host "✅ Bascule effectuée ! Version active : $inactiveColor"
-Write-Host "ℹ️  Pour rollback : relancer le pipeline ou exécuter scripts/rollback.ps1"
+Write-Host "Switch done. Active version: $inactiveColor"
+Write-Host "For rollback run scripts/rollback.ps1"
 
 docker compose ps
