@@ -601,7 +601,7 @@ La bascule s'effectue via le fichier nginx/active_color.txt qui définit les ups
 
 - Quel est le mécanisme de rollback :
   Le rollback est géré par scripts/rollback.ps1. Le script inverse la couleur active dans nginx/active_color.txt puis exécute nginx -s reload dans le conteneur reverse-proxy. Le retour arrière est donc quasi instantané sans redémarrer toute la stack.
-La bascule s'effectue via une variable d'environnement ACTIVE_ENV qui peut valoir blue ou green. Le fichier de configuration Nginx utilise cette variable pour router le trafic. Pour basculer, je modifie la variable et je recharge Nginx avec docker exec proxy-container nginx -s reload.
+
 
 ### Scénario de déploiement
 Au départ, blue est en production et sert le trafic. Pour déployer une nouvelle version, je démarre green en parallèle, je teste que tout fonctionne via ses ports spécifiques, puis je bascule le proxy sur green. Si un problème survient, je rebascule immédiatement sur blue en modifiant la variable et en rechargeant Nginx. Cette opération prend quelques secondes et ne provoque aucune interruption de service.
