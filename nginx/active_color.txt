@@ -1,0 +1,2 @@
+set $active_backend "backend_green";
+set $active_frontend "frontend_green";
